@@ -6,9 +6,10 @@ import arrow from "../../images/arrow-up.png";
 import { useDispatch, useSelector } from 'react-redux';
 import { fromSatoshi } from '../../wallet';
 import QRCodeGenerator from '../QRCodeGenerator/QRCodeGenerator';
-import { setToken } from '../../features/WalletDataSlice';
+import { callTokenDepositInit, setToken } from '../../features/WalletDataSlice';
 import close_img from "../../images/close-icon.png";
 import { DUST_LIMIT } from '../../wallet/util';
+import AddressInput from '../inputs/addressInput';
 
 
 // Add Animation for when button clicked
@@ -17,9 +18,9 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
     const dispatch = useDispatch();
     const { fee_info, token_verify } = useSelector((state) => state.walletData);
 
-    const [showAddress, setShowAddress] = useState(false);
-    const [address, setAddress] = useState({addr: "", type: ""})
+    const [address, setAddress] = useState({addr: token.token.ln, type: "ln"})
     const [tokenFee, setTokenFee] = useState("") // sum of values multiplied by fee_info.deposit
+    const [tokenId, setTokenId] = useState("");
     const [refresh, setRefresh] = useState();
 
     useEffect(()=> {
@@ -48,22 +49,14 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
         navigator.clipboard.writeText(address.addr);
     }
 
-    const onHandleClick = (e) => {
-
-        if(e.target.innerHTML.includes("BTC")){
-            setAddress({addr: token.token.btc, type: "btc"})
-            setShowAddress(true)
-        }
-        if(e.target.innerHTML.includes("LN")){
-            setAddress({addr: token.token.ln, type: "ln"})
-            setShowAddress(true)
-        }
-    }
-
     const handleConfirm = () => {
 
         if(token_verify.status === "idle"){
             dispatch(setToken(token))
+        }
+
+        if (tokenId !== "") {
+            dispatch(callTokenDepositInit({value: tokenFee, token: tokenId}))
         }
     }
 
@@ -91,25 +84,10 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
                 })}
             </div>
 
-            {showAddress? 
-            (
-            <div className='back-select'>
-                <button
-                    type="button"
-                    className="Body-button transparent left"
-                    onClick={() => setShowAddress(false)}>
-                    <img src={arrow} alt="arrow" />
-                </button>
-            </div>):(null)}
-
-            {showAddress? (
             <div className="receiveStatecoin-scan">
                 <div className="receive-qr-code">
                     
-                {address.type === "btc" ? 
-                (<QRCodeGenerator address={address.addr} amount={tokenFee}/>)
-                :
-                (<QRCode value={(address.addr).toUpperCase()} />)}
+                <QRCode value={(address.addr).toUpperCase()} />
                 </div>
                 <div className="receiveStatecoin-scan-content">
                     <div className="receiveStatecoin-scan-txid">
@@ -146,18 +124,14 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
                         </CopiedButton>
                     </div>
                 </div>
-            </div>):(
-                <div className='pay-select'>
-                    { tokenFee > DUST_LIMIT ? (
-                    <button className='Body-button token' onClick={(e) => onHandleClick(e)}>
-                        <p>BTC</p>
-                    </button>
-                    ): (null)}
-                    <button className='Body-button token' onClick={(e) => onHandleClick(e)}>
-                        <p>LN</p>
-                    </button>
-                </div>
-            )}
+            </div>
+            <div>
+                <AddressInput
+                    inputAddr={tokenId}
+                    onChange={(e) => setTokenId(e.target.value)}
+                    placeholder='Token ID'
+                    smallTxtMsg='Token ID'/>
+            </div>
             <div>
                 <button className = 'Body-button verify-token' onClick = {handleConfirm}>
                     Confirm Token
