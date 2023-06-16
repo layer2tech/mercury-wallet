@@ -21,6 +21,7 @@ jobs:
         run: |
           chown -R $USER:$USER .
           chmod -R 777 .
+          chown -R 1001:123 "/github/home/.npm"
 
       - name: build
         env:
