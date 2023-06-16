@@ -25,11 +25,11 @@ jobs:
           pwd
           id
           echo "starting linux build"
-          yarn app-linux
+          npm run app-linux --max-old-space-size=4096
           echo "finished linux"
           chown -R root:root /github/home
           echo "starting windows build"
-          npm run app-windows
+          npm run app-windows --max-old-space-size=4096
           echo "finished windows"
           ls -la dist
   on_mac:
