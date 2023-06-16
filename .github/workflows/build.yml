@@ -25,6 +25,7 @@ jobs:
           pwd
           id
           echo "starting linux build"
+          chown -R root:root /__w/mercury-wallet/mercury-wallet/package-lock.json
           npm run app-linux --max-old-space-size=4096
           echo "finished linux"
           chown -R root:root /github/home
