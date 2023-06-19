@@ -79,7 +79,6 @@
     "@electron/rebuild": "^3.2.10",
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.16",
-    "@types/jest": "^29.5.1",
     "@types/json-bigint": "^1.0.1",
     "@types/node": "^18.13.0",
     "@types/request-promise-native": "^1.0.18",
@@ -88,7 +87,6 @@
     "@types/tiny-secp256k1": "^2.0.1",
     "bitcoinjs-lib": "^6.1.0",
     "express": "^4.18.2",
-    "ts-jest": "^29.0.5",
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
@@ -96,7 +94,6 @@
     "webpack-cli": "^5.0.1"
   },
   "dependencies": {
-    "@jest/globals": "^29.5.0",
     "@psf/bip32-utils": "^1.0.4",
     "@types/express": "^4.17.6",
     "async-mutex": "^0.3.2",
@@ -114,7 +111,6 @@
     "esm": "^3.2.25",
     "express": "^4.17.3",
     "fs": "0.0.1-security",
-    "jest": "^29.4.1",
     "json-bigint": "^1.0.0",
     "lightningdevkit": "^0.0.11-5.0",
     "nanoid": "^4.0.0",
