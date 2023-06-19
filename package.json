@@ -26,7 +26,7 @@
     }
   },
   "repository": "github:layer2tech/mercury-wallet",
-  "version": "v0.8.14",
+  "version": "v0.9.0",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "public/electron.js",
@@ -134,7 +134,7 @@
     "levenary": "^1.1.1",
     "limiter": "^2.1.0",
     "lodash.clonedeep": "^4.5.0",
-    "mercury-wallet-lightning-adapter": "https://github.com/layer2tech/mercury-node.git",
+    "mercury-wallet-lightning-adapter": "file:./lightning-adapter",
     "mercury-wallet-tor-adapter": "file:./tor-adapter",
     "moment": "^2.29.1",
     "msgpack-lite": "^0.1.26",
