@@ -51,16 +51,13 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
 
     const handleConfirm = () => {
 
-        if(token_verify.status === "idle"){
-            dispatch(setToken(token))
-        }
-
         if (tokenId !== "") {
             dispatch(callTokenDepositInit({value: token.values[0], token: tokenId}))
+        } else if(token_verify.status === "idle"){
+            dispatch(setToken(token))
         }
     }
 
-    
     return(
     <div className="token-deposit receiveStatecoin content">
         <div className="Body">

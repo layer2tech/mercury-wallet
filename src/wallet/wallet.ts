@@ -2100,17 +2100,12 @@ export class Wallet {
 
   async tokenVerify(token_id: string){
 
-    console.log(token_id);
-
     let verif = await tokenVerify(this.http_client,token_id);
     // Checks verification of last token with ID: token_id
-    console.log(verif);
     return verif
   }
 
   async tokenDepositInit (value: number, token_id: string){
-
-    console.log(token_id);
 
     log.info("Depositing Init. " + fromSatoshi(value) + " BTC");
 

@@ -1334,7 +1334,6 @@ export const callTokenInit = createAsyncThunk(
 export const callTokenVerify = createAsyncThunk(
   'tokenVerify',
   async (action, thunkAPI) => {
-    console.log(action.token_id);
     return wallet.tokenVerify(action.token_id)
   }
 )
@@ -1349,7 +1348,6 @@ export const callDepositInit = createAsyncThunk(
 export const callTokenDepositInit = createAsyncThunk(
   'tokenDepositInit',
   async (action, thunkAPI) => {
-    console.log(action);
     return wallet.tokenDepositInit(action.value, action.token)
   }
 )
