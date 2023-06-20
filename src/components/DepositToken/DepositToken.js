@@ -56,7 +56,7 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
         }
 
         if (tokenId !== "") {
-            dispatch(callTokenDepositInit({value: tokenFee, token: tokenId}))
+            dispatch(callTokenDepositInit({value: token.values[0], token: tokenId}))
         }
     }
 

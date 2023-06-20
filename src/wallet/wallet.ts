@@ -2110,6 +2110,8 @@ export class Wallet {
 
   async tokenDepositInit (value: number, token_id: string){
 
+    console.log(token_id);
+
     log.info("Depositing Init. " + fromSatoshi(value) + " BTC");
 
     let proof_key_bip32 = await this.genProofKey(); // Generate new proof key
@@ -2117,10 +2119,12 @@ export class Wallet {
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
     let proof_key_priv = proof_key_bip32.privateKey!.toString("hex")
 
+    let wasm_client = await this.getWasm();
+
     let statecoin = await tokenDepositInit(
       
       this.http_client, 
-      await this.getWasm(),
+      wasm_client,
       token_id,
       proof_key_pub,
       proof_key_priv!,
