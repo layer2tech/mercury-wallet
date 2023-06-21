@@ -51,6 +51,10 @@ const CreateWalletInfoPage = () => {
         };
         break;
       default:
+        reduxNetworkValue = {
+          mode: 1,
+          network: bitcoin.networks["testnet"],
+        };
         break;
     }
 
