@@ -74,6 +74,7 @@ export const callSetArgsHasTestnet = async (value) => {
 
 export const callGetNetwork = () => {
   if (isWalletLoaded()) {
+    console.log("callGetNetwork->", wallet.config.network);
     return wallet.config.network;
   }
 };
@@ -411,16 +412,6 @@ export async function walletFromMnemonic(
   gap_start = undefined,
   network = undefined
 ) {
-  if (network === 0) {
-    network = bitcoin.networks["testnet"];
-  } else if (network === 1) {
-    network = bitcoin.networks["bitcoin"];
-  } else if (network === 2) {
-    network = bitcoin.networks["regtest"];
-  } else {
-    network = bitcoin.networks["bitcoin"];
-  }
-
   dispatch(setProgressComplete({ msg: "" }));
   wallet = Wallet.fromMnemonic(
     name,

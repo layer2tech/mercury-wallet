@@ -10,6 +10,7 @@ import {
   setWalletLoaded,
 } from "../../features/WalletDataSlice";
 import "./confirmSeed.css";
+import { LDKClient } from "../../wallet/ldk_client";
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
@@ -128,8 +129,20 @@ const ConfirmSeed = (props) => {
         undefined,
         undefined,
         undefined,
-        network
+        network.network
       );
+
+      let networkPostArg = "";
+      if (network.mode === 0) {
+        networkPostArg = "test";
+      } else if (network.mode === 1) {
+        networkPostArg = "prod";
+      } else if (network.mode === 2) {
+        networkPostArg = "dev";
+      }
+
+      // network call
+      LDKClient.post("/startLDK", { network: networkPostArg });
     } catch (e) {
       event.preventDefault();
       dispatch(setError({ msg: e.message }));

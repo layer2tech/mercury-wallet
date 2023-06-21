@@ -145,7 +145,6 @@ for (let i = 0; i < process.argv.length; i++) {
 }
 
 let mainWindow = null;
-
 // start lightning adapter service
 function startExpressServer() {
   let lightning_adapter_directory;
@@ -164,7 +163,6 @@ function startExpressServer() {
       "mercury-wallet-lightning-adapter"
     );
   }
-
   const command = "node";
   const args = [
     "--loader",
@@ -172,20 +170,18 @@ function startExpressServer() {
     "--experimental-specifier-resolution=node",
     lightning_adapter_path,
   ];
-
   const expressProcess = spawn(command, args, {
     cwd: lightning_adapter_directory,
     shell: true,
     stdio: "inherit",
   });
-
-  expressProcess.on("error", (err) => {
-    console.log(`Express server error: ${err}`);
-    throw err;
-  });
-
-  expressProcess.on("close", (code) => {
-    console.log(`Express server process exited with code ${code}`);
+  // Add a listener for the `exit` event
+  expressProcess.on("exit", (code) => {
+    if (code !== 0) {
+      // The process exited with an error code, so restart it
+      console.log("Express server crashed, restarting...");
+      startExpressServer();
+    }
   });
 }
 

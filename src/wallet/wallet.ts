@@ -616,6 +616,8 @@ export class Wallet {
   }
 
   save_nomutex() {
+    console.log("SAVING WALLET AS ->", this.config.network);
+
     let wallet_json = cloneDeep(this);
     this.storage.storeWallet(wallet_json);
     wallet_json = null;
@@ -1202,7 +1204,7 @@ export class Wallet {
     return this.block_height;
   }
 
-  resetBlockHeight(){
+  resetBlockHeight() {
     this.block_height = 0;
   }
 
@@ -1374,25 +1376,22 @@ export class Wallet {
       // check if in mempool and confirmed
       if (statecoin.status === STATECOIN_STATUS.IN_MEMPOOL) {
         let txid = statecoin.funding_txid;
-          if (txid != null) {
-            const tx_data: any = this.electrum_client.getTransaction(txid);
-              if (
-                tx_data?.confirmations != null &&
-                tx_data.confirmations >= 0
-              ) { 
-                this.statecoins.setCoinUnconfirmed(
-                  statecoin.shared_key_id,
-                  tx_data
-                );
-            }
-              if (
-                tx_data?.confirmations != null &&
-                tx_data.confirmations >= this.config.required_confirmations
-              ) { 
-                  statecoin.setConfirmed();
-                  this.saveStateCoin(statecoin);
-            }
+        if (txid != null) {
+          const tx_data: any = this.electrum_client.getTransaction(txid);
+          if (tx_data?.confirmations != null && tx_data.confirmations >= 0) {
+            this.statecoins.setCoinUnconfirmed(
+              statecoin.shared_key_id,
+              tx_data
+            );
           }
+          if (
+            tx_data?.confirmations != null &&
+            tx_data.confirmations >= this.config.required_confirmations
+          ) {
+            statecoin.setConfirmed();
+            this.saveStateCoin(statecoin);
+          }
+        }
       }
     });
   }
@@ -1598,9 +1597,7 @@ export class Wallet {
         undefined,
         false
       );
-    } else if (
-      bresponse.includes("insufficient fee")
-    ) {
+    } else if (bresponse.includes("insufficient fee")) {
       statecoin.setBackupBelowMinFee();
     }
   }
@@ -1638,9 +1635,7 @@ export class Wallet {
         undefined,
         false
       );
-    } else if (
-      err.includes("insufficient fee")
-    ) {
+    } else if (err.includes("insufficient fee")) {
       statecoin.setBackupBelowMinFee();
     }
   }
@@ -2535,7 +2530,7 @@ export class Wallet {
     return this.swap_group_info;
   }
 
-  resetSwapGroupInfo(){
+  resetSwapGroupInfo() {
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
   }
 
