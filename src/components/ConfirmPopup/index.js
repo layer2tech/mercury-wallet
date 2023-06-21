@@ -65,15 +65,16 @@ const ConfirmPopup = ({
           setCloseText("Confirm send, statecoin ready to be sent immediately.");
         }
       }
-    } else if (children.props.className.includes("withdraw-button")) {
-      if (children.props.className.includes("withdrawing-warning")) {
-        setCloseText(
-          "Confirm withdrawal by RBF: Broadcast new transaction with higher fee."
-        );
-      } else {
-        setCloseText(
-          "Confirm withdrawal. Withdrawal fee: " + withdraw_fee / 100 + "%"
-        );
+    } else if(children.props.className.includes('withdraw-button')){
+      if(children.props.className.includes("withdrawing-warning")){
+        setCloseText('Confirm withdrawal by RBF: Broadcast new transaction with higher fee.')
+      }else{
+        // Pay On Deposit or Withdrawal ?
+        if( withdraw_fee && withdraw_fee > 0 ){
+          setCloseText('Confirm withdrawal. Withdrawal fee: ' + withdraw_fee/100 + '%')
+        } else{
+          setCloseText('Confirm withdrawal.')
+        }
       }
     } else if (children.props.className.includes("closing-button")) {
       setCloseText("Are you sure you wish to close the channel?");

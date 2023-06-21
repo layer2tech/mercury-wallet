@@ -317,7 +317,7 @@ app.on("ready", () => {
 
   // Clears cookie storage
   // Persisted web store must be wiped for electron in case redux store has changed
-  // session.defaultSession.clearStorageData([], data => {})
+  session.defaultSession.clearStorageData([], data => {})
 
   terminate_tor_process();
   terminate_mercurywallet_process(null, "tor");
