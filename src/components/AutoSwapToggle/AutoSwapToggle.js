@@ -26,7 +26,7 @@ const AutoSwapToggle = ({ coin_data }) => {
           dispatch(setError({ msg: "Please choose a StateCoin to swap." }))
           return
         }
-        if (swapLoad.join === true  && swapPage === "/swap") {
+        if (swapLoad.join === true  && swapPage === "/swap_statecoin") {
           return
         }
     
