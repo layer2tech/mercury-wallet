@@ -235,7 +235,10 @@ const Coin = (props) => {
         className={`coin-item ${
           swapPage || sendPage || withdrawPage ? props.coin_data.status : ""
         } ${isSelected(props.coin_data.shared_key_id) ? "selected" : ""}`}
-        onClick={() => {
+        onClick={(event) => {
+          if (event.target.className.includes("toggle")) {
+            return;
+          }
           if (
             props.coin_data.status === STATECOIN_STATUS.SWAPLIMIT &&
             swapPage
