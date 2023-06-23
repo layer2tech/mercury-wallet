@@ -122,6 +122,9 @@ const initialState = {
   ping_server_ms: null,
   ping_conductor_ms: null,
   ping_electrum_ms: null,
+  token_init_status: "idle",
+  token: {token: { id: "", btc: "", ln: "" }, values: []},
+  token_verify: {spent: true, confirmed: false, status: "idle"},
   ping_lightning_ms: null,
   ping_swap: null,
   ping_server: null,
@@ -529,6 +532,36 @@ export const callGetVersion = () => {
 export const callGetBlockHeight = () => {
   if (isWalletLoaded()) {
     return wallet.getBlockHeight();
+  }
+}
+
+export const callAddToken = (token, values) => {
+  if(isWalletLoaded()){
+    return wallet.addToken(token, values)
+  }
+}
+export const callGetToken = () => {
+  if(isWalletLoaded()){
+    return wallet.getToken()
+  }
+}
+export const callGetTokens = () => {
+  if(isWalletLoaded()){
+    return wallet.getTokens().reverse()
+  }
+}
+
+export const callDeleteToken = (token_id) => {
+  if (isWalletLoaded()) {
+    log.info("Removing token " + token_id + " from wallet.");
+    wallet.deleteToken(token_id);
+  }
+}
+
+export const callSpendToken = (token_id, amount) => {
+  if (isWalletLoaded()) {
+    log.info("Spending " + amount + " from token " + token_id + ".");
+    wallet.spendToken(token_id, amount);
   }
 };
 
@@ -1258,12 +1291,36 @@ export const callResetConnectionData = (dispatch) => {
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
 
+
+export const callTokenInit = createAsyncThunk(
+  'tokenInit',
+  async (action, thunkAPI) => {
+    return wallet.tokenInit(action.amount)
+  }
+)
+
+export const callTokenVerify = createAsyncThunk(
+  'tokenVerify',
+  async (action, thunkAPI) => {
+    return wallet.tokenVerify(action.token_id)
+  }
+)
+
 export const callDepositInit = createAsyncThunk(
   "depositInit",
   async (value, thunkAPI) => {
     return wallet.depositInit(value);
   }
-);
+)
+
+export const callTokenDepositInit = createAsyncThunk(
+  'tokenDepositInit',
+  async (action, thunkAPI) => {
+    return wallet.tokenDepositInit(action.value, action.token)
+  }
+)
+
+
 export const callDepositConfirm = createAsyncThunk(
   "depositConfirm",
   async (action, thunkAPI) => {
@@ -1480,6 +1537,25 @@ const WalletSlice = createSlice({
         ...state,
         fee_info: action.payload,
       };
+    },
+    //update Token
+    setToken(state, action){
+      return {
+        ...state,
+        token: action.payload
+      }
+    },
+    resetToken(state, action){
+      return {
+        ...state,
+        token: {token: { id: "", btc: "", ln: "" }, values: []}
+      }
+    },
+    setTokenVerifyIdle(state, action){
+      return {
+        ...state,
+        token_verify: {...state.token_verify, status: "idle"}
+      }
     },
     // Update ping_swap
     updatePingSwap(state, action) {
@@ -1784,6 +1860,44 @@ const WalletSlice = createSlice({
         msg: action.error.name + ": " + action.error.message,
       };
     },
+    [callTokenInit.pending]: (state) => {
+      state.token_init_status = "pending"
+    },
+    [callTokenInit.fulfilled]: (state, action) => {
+      let res = action.payload;
+
+      state.token_init_status = "fulfilled"
+
+      callAddToken({token: res, values: action.meta.arg.values});
+
+    },
+    [callTokenInit.rejected]: (state, action) => {
+      
+      state.token_init_status = "rejected"
+
+    },
+    [callTokenVerify.pending]: (state) => {
+      state.token_verify.status = "pending"
+    },
+    [callTokenVerify.fulfilled]: (state, action) => {
+      let res = action.payload;
+      
+      state.token_verify.status = "fulfilled";
+      state.token_verify.spent = res.spent;
+      state.token_verify.confirmed = res.confirmed;
+    },
+    [callTokenVerify.rejected]: (state, action) => {
+      state.token_verify.status = "rejected"
+    },
+    [callTokenDepositInit.pending]: (state) => {
+      state.depositLoading = true;
+    },
+    [callTokenDepositInit.rejected]: (state, action) => {
+      state.error_dialogue = { seen: false, msg: action.error.name + ": " + action.error.message }
+    },
+    [callTokenDepositInit.fulfilled]: (state) => {
+      state.depositLoading = false;
+    },
     [callDepositInit.pending]: (state) => {
       state.depositLoading = true;
     },
@@ -1907,6 +2021,9 @@ export const {
   setNotificationSeen,
   updateBalanceInfo,
   callClearSave,
+  setToken, 
+  resetToken, 
+  setTokenVerifyIdle,
   updateFilter,
   updateWalletMode,
   updateChannelEvents,

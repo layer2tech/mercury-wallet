@@ -4,7 +4,7 @@
 import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
 import { getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE, StateCoin } from "..";
 import { PrepareSignTxMsg } from "./ecdsa";
-import { getSigHash, StateChainSig, txWithdrawBuildBatch, txWithdrawBuild } from "../util";
+import { getSigHash, StateChainSig, txBuilder, WITHDRAW_SEQUENCE } from "../util";
 import { PROTOCOL, sign, sign_batch } from "./ecdsa";
 import { FeeInfo, getStateChain, StateChainDataAPI } from "./info_api";
 
@@ -102,24 +102,9 @@ export const withdraw_init = async (
   // Construct withdraw tx
   let tx_withdraw_unsigned: Transaction;
 
-  if (statecoins.length > 1) {
-    tx_withdraw_unsigned = txWithdrawBuildBatch(network, sc_infos, rec_addr, fee_info, fee_per_byte).buildIncomplete();
-  } else {
-    let statecoin = statecoins[0];
-    let withdraw_fee = Math.floor((statecoin.value * fee_info.withdraw) / 10000);
-    tx_withdraw_unsigned = txWithdrawBuild(
-      network,
-      statecoin.funding_txid,
-      statecoin.funding_vout,
-      rec_addr,
-      statecoin.value,
-      fee_info.address,
-      withdraw_fee,
-      fee_per_byte
-    ).buildIncomplete();
-  }
+  let nSequence = WITHDRAW_SEQUENCE;
 
-
+  tx_withdraw_unsigned = txBuilder(network, sc_infos, rec_addr, fee_info, nSequence, fee_per_byte).buildIncomplete();
 
   let signatureHashes: string[] = [];
 
@@ -196,6 +181,13 @@ export const withdraw_duplicate = async (
   for (const sc of statecoins) {
 
     let statecoin: StateCoin = sc;
+    sc_infos.push({
+      utxo:{txid: statecoin.funding_txid,
+        vout: statecoin.funding_vout},
+      amount: statecoin.value,
+      chain: [],
+      locktime: statecoin.block
+    })
 
     let proof_key_der: BIP32Interface = proof_key_ders[index];
 
@@ -216,19 +208,8 @@ export const withdraw_duplicate = async (
   if (statecoins.length > 1) {
     throw Error("Duplicate deposits cannot be batch withdrawn");
   } else {
-    let statecoin = statecoins[0];
-    console.log(statecoin);
-    let withdraw_fee = Math.floor((statecoin.value * fee_info.withdraw) / 10000);
-    tx_withdraw_unsigned = txWithdrawBuild(
-      network,
-      statecoin.funding_txid,
-      statecoin.funding_vout,
-      rec_addr,
-      statecoin.value,
-      fee_info.address,
-      withdraw_fee,
-      fee_per_byte
-    ).buildIncomplete();
+    let nSequence = WITHDRAW_SEQUENCE;
+    tx_withdraw_unsigned = txBuilder(network, sc_infos, rec_addr, fee_info, nSequence, fee_per_byte).buildIncomplete();
   }
 
   let signatureHashes: string[] = [];

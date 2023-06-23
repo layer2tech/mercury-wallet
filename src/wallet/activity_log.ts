@@ -1,6 +1,7 @@
 // History is a log of all Mercury protocol actions taken by the wallet.
 
 'use strict';
+
 import { constants } from "perf_hooks";
 import { textSpanIsEmpty } from "typescript";
 let cloneDeep = require("lodash.clonedeep");
