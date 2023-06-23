@@ -504,14 +504,14 @@ export class Wallet {
           : json_wallet.networkType;
 
       if (isElectron()) {
-        if (json_wallet.config.electrum_config.host.includes("testnet")) {
-          json_wallet.config.network = bitcoin.networks.testnet;
-        } else if (
-          json_wallet.config.electrum_config.host.includes("regtest")
-        ) {
+        // An issue occurs with reloading the networks so check what network it is and give it again.
+        let json_wallet_network = json_wallet.config.network.bech32;
+        if (json_wallet_network === "bcrt") {
           json_wallet.config.network = bitcoin.networks.regtest;
-        } else {
+        } else if (json_wallet_network === "bc") {
           json_wallet.config.network = bitcoin.networks.bitcoin;
+        } else {
+          json_wallet.config.network = bitcoin.networks.testnet;
         }
       }
 
@@ -846,8 +846,6 @@ export class Wallet {
     this.active = state;
   }
 
-  connectToPeer = async (pubkey: string, host: string, port: number) => {};
-
   // Load wallet JSON from store
   static async load(
     wallet_name: string,
@@ -906,35 +904,9 @@ export class Wallet {
     // Regularly reconnect to peers every 60 seconds
     setInterval(connectToPeers, 60000);
 
-    /* -- this is incorrect, channels need to be reloaded with chainmonitor stage
-      if (response.status === 200) {
-        console.log(response.data); // "Connected to peer"
-
-        let amount = mergedInfo[i].amount;
-        let push_msat = mergedInfo[i].push_msat;
-        let channelId = mergedInfo[i].id;
-        let channelType = mergedInfo[i].public;
-
-        try {
-          // now connect to its channel
-          const response2 = await axios.post(
-            "http://localhost:3003/peer/connectToChannel",
-            { pubkey, amount, push_msat, channelId, channelType }
-          );
-          if (response2.status === 200) {
-            console.log("response2 success", response2.data);
-          }
-        } catch (e) {
-          console.log("failed loading channels");
-        }
-      } else {
-        console.log(response.data); // "Failed to connect to peer"
-    }*/
-
     wallet.saveChannels(channelsInfo);
     wallet.setActive();
     wallet.nodeId = await wallet.lightning_client.getNodeId();
-
     return wallet;
   }
 

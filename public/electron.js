@@ -173,7 +173,7 @@ function startExpressServer() {
   const expressProcess = spawn(command, args, {
     cwd: lightning_adapter_directory,
     shell: true,
-    stdio: "inherit",
+    stdio: "ignore",
   });
   // Add a listener for the `exit` event
   expressProcess.on("exit", (code) => {
