@@ -4,7 +4,7 @@ import fs from "fs";
 export default async function initializeWasm() {
   try {
     const wasm_file = await fs.promises.readFile(
-      "../lightningdevkit/liblightningjs.wasm"
+      "../node_modules/lightningdevkit/liblightningjs.wasm"
     );
     await ldk.initializeWasmFromBinary(wasm_file);
   } catch (e) {

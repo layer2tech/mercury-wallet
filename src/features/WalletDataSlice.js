@@ -988,6 +988,7 @@ export const callCreateChannel = async (amount, peer_node) => {
   if (isWalletLoaded()) {
     return await wallet.createChannel(amount, peer_node);
   }
+  return null;
 };
 
 export const callSendPayment = async (invoiceStr, dispatch) => {
