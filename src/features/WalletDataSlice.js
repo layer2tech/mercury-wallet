@@ -288,32 +288,8 @@ export function initActivityLogItems() {
 
 export async function loadWalletFromMemory(name, password) {
   wallet = await Wallet.load(name, password, testing_mode);
-
-  // Lightning - loading
-  /*
-  let network = wallet.config.network;
-  console.log("network loaded from memory was:", network);
-  let networkPostValue = "";
-  if (network.bech32 === "bc") {
-    networkPostValue = "prod";
-  } else if (network.bech32 === "tb") {
-    networkPostValue = "test";
-  } else {
-    networkPostValue = "dev";
-  }
-  console.log("networkPostValue is:", networkPostValue);
-  LDKClient.get(LIGHTNING_GET_ROUTE.PEER_LIST).then((res) => {
-    console.log("result returned was:", res);
-    res.status === 200
-      ? LDKClient.post(LIGHTNING_POST_ROUTE.START_LDK, {
-          network: networkPostValue,
-        })
-      : null;
-  });*/
-
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
-
   log.info("Wallet " + name + " loaded from memory. ");
   return wallet;
 }
