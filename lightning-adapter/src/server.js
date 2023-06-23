@@ -7,8 +7,6 @@ import channelRoutes from "./routes/channelRoutes";
 import { closeConnections } from "./LDK/utils/ldk-utils";
 import initialiseWasm from "./LDK/init/initializeWasm";
 
-await initialiseWasm();
-
 // Constants
 const PORT = 3003;
 
@@ -23,6 +21,25 @@ app.use(bodyParser.json());
 app.use("/", serverRoutes);
 app.use("/peer", peerRoutes);
 app.use("/channel", channelRoutes);
+
+// InitWASM route
+app.post("/initWASM", async (req, res) => {
+  const { path } = req.body;
+
+  console.log("path received was:", path);
+
+  if (!path) {
+    res.status(400).json({ error: "Path is missing in the request body." });
+    return;
+  }
+
+  try {
+    await initialiseWasm(path);
+    res.status(200).json({ message: "WASM initialized successfully." });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to initialize WASM." + error });
+  }
+});
 
 // Starting the express server
 async function startServer() {

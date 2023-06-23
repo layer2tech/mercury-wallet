@@ -61,6 +61,7 @@ let execPath = undefined;
 let torrc = undefined;
 let anon_adapter_path = undefined;
 let lightning_adapter_path = undefined;
+let lightning_adapter_directory;
 
 if (isPackaged === true) {
   if (getPlatform() == "linux") {
@@ -146,46 +147,6 @@ for (let i = 0; i < process.argv.length; i++) {
 
 let mainWindow = null;
 // start lightning adapter service
-function startExpressServer() {
-  let lightning_adapter_directory;
-
-  if (isPackaged === true) {
-    lightning_adapter_directory = joinPath(
-      __dirname,
-      "..",
-      "node_modules",
-      "mercury-wallet-lightning-adapter"
-    );
-  } else {
-    lightning_adapter_directory = joinPath(
-      rootPath,
-      "node_modules",
-      "mercury-wallet-lightning-adapter"
-    );
-  }
-  const command = "node";
-  const args = [
-    "--loader",
-    "ts-node/esm",
-    "--experimental-specifier-resolution=node",
-    lightning_adapter_path,
-  ];
-  const expressProcess = spawn(command, args, {
-    cwd: lightning_adapter_directory,
-    shell: true,
-    stdio: "ignore",
-  });
-  // Add a listener for the `exit` event
-  expressProcess.on("exit", (code) => {
-    if (code !== 0) {
-      // The process exited with an error code, so restart it
-      console.log("Express server crashed, restarting...");
-      startExpressServer();
-    }
-  });
-}
-
-startExpressServer();
 
 function createWindow() {
   let windowSpec = {
@@ -288,6 +249,43 @@ function createWindow() {
   }
 }
 
+function startExpressServer() {
+  if (isPackaged === true) {
+    lightning_adapter_directory = joinPath(
+      __dirname,
+      "..",
+      "node_modules",
+      "mercury-wallet-lightning-adapter"
+    );
+  } else {
+    lightning_adapter_directory = joinPath(
+      rootPath,
+      "node_modules",
+      "mercury-wallet-lightning-adapter"
+    );
+  }
+  const command = "node";
+  const args = [
+    "--loader",
+    "ts-node/esm",
+    "--experimental-specifier-resolution=node",
+    lightning_adapter_path,
+  ];
+  const expressProcess = spawn(command, args, {
+    cwd: lightning_adapter_directory,
+    shell: true,
+    stdio: "ignore",
+  });
+  // Add a listener for the `exit` event
+  expressProcess.on("exit", (code) => {
+    if (code !== 0) {
+      // The process exited with an error code, so restart it
+      console.log("Express server crashed, restarting...");
+      startExpressServer();
+    }
+  });
+}
+
 async function getTorAdapter(path) {
   const url = `http://localhost:3001${path}`;
   const config = {
@@ -314,6 +312,23 @@ app.on("ready", () => {
   // Clears cookie storage
   // Persisted web store must be wiped for electron in case redux store has changed
   // session.defaultSession.clearStorageData([], data => {})
+  startExpressServer();
+
+  let nodePath =
+    lightning_adapter_directory +
+    "/node_modules/lightningdevkit/liblightningjs.wasm";
+
+  const axios = require("axios");
+  axios
+    .post("http://localhost:3003/initWASM", {
+      path: nodePath,
+    })
+    .then((response) => {
+      console.log(response.data.message);
+    })
+    .catch((error) => {
+      console.error(error.response.data.error);
+    });
 
   terminate_tor_process();
   terminate_mercurywallet_process(null, "tor");
