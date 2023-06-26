@@ -314,22 +314,6 @@ app.on("ready", () => {
   // session.defaultSession.clearStorageData([], data => {})
   startExpressServer();
 
-  let nodePath =
-    lightning_adapter_directory +
-    "/node_modules/lightningdevkit/liblightningjs.wasm";
-
-  const axios = require("axios");
-  axios
-    .post("http://localhost:3003/initWASM", {
-      path: nodePath,
-    })
-    .then((response) => {
-      console.log(response.data.message);
-    })
-    .catch((error) => {
-      console.error(error.response.data.error);
-    });
-
   terminate_tor_process();
   terminate_mercurywallet_process(null, "tor");
   terminate_mercurywallet_process(init_adapter, "i2p");

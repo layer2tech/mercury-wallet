@@ -871,6 +871,17 @@ export class Wallet {
       };
     });
 
+    let networkPostArg = "";
+    if (wallet.config.network.bech32 === "tb") {
+      networkPostArg = "test";
+    } else if (wallet.config.network.bech32 === "bc") {
+      networkPostArg = "prod";
+    } else if (wallet.config.network.bech32 === "bcrt") {
+      networkPostArg = "dev";
+    }
+    // network call
+    await LDKClient.post("/startLDK", { network: networkPostArg });
+
     async function connectToPeers() {
       // Connect to peer on an interval loop
       console.log("reconnecting to peer...");
@@ -884,14 +895,11 @@ export class Wallet {
         console.log("try to connect to pubkey->", pubkey);
 
         try {
-          const response = await axios.post(
-            "http://localhost:3003/peer/connectToPeer",
-            {
-              pubkey,
-              host,
-              port,
-            }
-          );
+          await LDKClient.post("/peer/connectToPeer", {
+            pubkey,
+            host,
+            port,
+          });
         } catch (error: any) {
           console.log(error.response.data); // "Error connecting to peer"
         }
