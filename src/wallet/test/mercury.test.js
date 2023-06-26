@@ -176,11 +176,21 @@ describe("StateChain Entity", function () {
 
   describe("Withdraw", function () {
     let fee_per_byte = 1;
-    test("Expect complete", async function () {
-      http_mock.get = jest
-        .fn()
-        .mockReset()
-        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO))
+
+    test('Expect complete', async function() {
+      let statecoin = makeTesterStatecoin();
+      let STATECHAIN_INFO = {
+        utxo: {
+          txid: statecoin.funding_txid,
+          vout: statecoin.funding_vout
+        },
+        amount: statecoin.value,
+        chain: MOCK_SERVER.STATECHAIN_INFO.chain,
+        locktime: 100
+      }
+
+      http_mock.get = jest.fn().mockReset()
+        .mockReturnValueOnce(cloneDeep(STATECHAIN_INFO))
         .mockReturnValueOnce(cloneDeep(MOCK_SERVER.FEE_INFO));
       http_mock.post = jest.fn().mockReset().mockReturnValueOnce(true); //POST.WITHDRAW_INIT
       // Sign
@@ -192,7 +202,6 @@ describe("StateChain Entity", function () {
       wasm_mock.Sign.first_message = jest.fn(() => MOCK_CLIENT.SIGN_FIRST);
       wasm_mock.Sign.second_message = jest.fn(() => MOCK_CLIENT.SIGN_SECOND);
 
-      let statecoin = makeTesterStatecoin();
 
       let proof_key_der = bitcoin.ECPair.fromPrivateKey(
         Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER.__D)
@@ -213,7 +222,11 @@ describe("StateChain Entity", function () {
       expect(tx_withdraw.ins[0].hash.reverse().toString("hex")).toBe(
         statecoin.funding_txid
       );
-      expect(tx_withdraw.outs.length).toBe(2);
+      if(MOCK_SERVER.FEE_INFO.withdraw > 0){
+        expect(tx_withdraw.outs.length).toBe(2);
+      } else {
+        expect(tx_withdraw.outs.length).toBe(1);
+      }
       expect(tx_withdraw.outs[0].value).toBeLessThan(statecoin.value);
       expect(tx_withdraw.locktime).toBe(0);
     });
@@ -345,7 +358,11 @@ describe("StateChain Entity", function () {
       expect(tx_withdraw.ins[1].hash.reverse().toString("hex")).toBe(
         statecoins[1].funding_txid
       );
-      expect(tx_withdraw.outs.length).toBe(2);
+      if(MOCK_SERVER.FEE_INFO.withdraw > 0 ){
+        expect(tx_withdraw.outs.length).toBe(2);
+      } else{
+        expect(tx_withdraw.outs.length).toBe(1);
+      }
       expect(tx_withdraw.outs[0].value).toBeLessThan(
         statecoins[0].value + statecoins[1].value
       );

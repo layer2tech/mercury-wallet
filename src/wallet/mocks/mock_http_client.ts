@@ -24,6 +24,8 @@ export class MockHttpClient {
         return true
       case GET_ROUTE.FEES:
         return cloneDeep(FEE_INFO)
+      case GET_ROUTE.COINS_INFO:
+        return COINS_INFO
       case GET_ROUTE.ROOT:
         return cloneDeep(ROOT_INFO)
       case GET_ROUTE.STATECHAIN:
@@ -39,6 +41,10 @@ export class MockHttpClient {
         }
       case GET_ROUTE.SC_TRANSFER_FINALIZE_DATA:
         return cloneDeep(RECOVERY_TRANSFER_FINALIZE_DATA_API)
+      case GET_ROUTE.TOKEN_INIT:
+        return TOKEN_INIT 
+      case GET_ROUTE.TOKEN_VERIFY:
+        return TOKEN_VERIFY
     }
   }
 
@@ -57,7 +63,10 @@ export class MockHttpClient {
       case POST_ROUTE.SMT_PROOF:
         return SMT_PROOF
       case POST_ROUTE.DEPOSIT_INIT:
-        return { id: "861d2223-7d84-44f1-ba3e-4cd7dd418560" };
+        return { id: "861d2223-7d84-44f1-ba3e-4cd7dd418560",
+      challenge: "861d22237d8444f1ba3e4cd7dd418560" };
+      case POST_ROUTE.POD_DEPOSIT_INIT:
+        return { id: "861d2223-7d84-44f1-ba3e-4cd7dd418560"};
       case POST_ROUTE.DEPOSIT_CONFIRM:
         return DEPOSIT_CONFIRM
       case POST_ROUTE.WITHDRAW_INIT:
@@ -99,12 +108,23 @@ export class MockHttpClient {
 export const FEE_INFO = {
   address: "tb1q6xwt00hnwcrtlunvnz8u0xrtdxv5ztx7pj44cp",
   deposit: 300,
-  withdraw: 141,
+  withdraw: 0,
   interval: 100,
   initlock: 10000,
   wallet_version: "0.4.66",
   wallet_message: "",
   backup_fee_rate: 1
+}
+
+export const BACKUP_SEQUENCE = 0xFFFFFFFE;
+export const WITHDRAW_SEQUENCE = 0xFFFFFFFD;
+
+export const COINS_INFO = {
+  values: {
+    0: 205,
+    100000: 356,
+    1000000: 4
+  }
 }
 
 export const ROOT_INFO = {
@@ -784,4 +804,16 @@ export const SWAP_INFO = {
       "54b29bec-a948-4fbc-82c2-f3050f6d7fc7",
       "f572154e-42e7-4f9a-9a30-aa549f5853a7"]
   }
+}
+
+
+export const TOKEN_INIT = {
+  lightning_invoice: { bolt11: "lnbcrt10n1p3gunwhsp5489n88ud2mnz2kgrzkl8phu5s8u4k59mp9s8fym5vylpkmsfhcjspp5h0vdwx8n63fhpywenfwxmakt8f2xzdh3fvpepale29xqe23p7hsqdq4ga5hvefqd4jjqmt0dejhjxqyjw5qcqp29qyysgqjnjd9dztcew2tcelpp0ccq3aylv9ss85afx66j0sam972sjereqjrangvu3dlrm2l6x4jpll7uy4z970pwl5tgvck3r3ffa2vkxw24cqlyljc0" },
+  btc_payment_address: "tb1qm42jxjapu3dlcv2k4xmqywvy6d4d4xkhuk05d7",
+  token_id: "d36b9h03-f7ne-4650-35cr-d185ffg37457"
+}
+
+export const TOKEN_VERIFY = {
+  confirmed: true,
+  spent: false,
 }

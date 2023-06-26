@@ -7,10 +7,12 @@ import {
   callGetConfig,
   callAddDescription,
   callGetStateCoin,
-  setIntervalIfOnline
+  setIntervalIfOnline,
+  callTokenDepositInit,
+  callSpendToken
 } from '../../features/WalletDataSlice'
 import { fromSatoshi } from '../../wallet'
-import { CopiedButton } from '../../components'
+import { CopiedButton } from '..'
 import QRCodeGenerator from '../QRCodeGenerator/QRCodeGenerator'
 import CoinDescription from '../inputs/CoinDescription/CoinDescription.js';
 
@@ -42,7 +44,7 @@ const TransactionsBTC = (props) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   // const { depositLoading } = useSelector((state) => state.walletData); TODO: check why this was placed in redux
-  const { torInfo} = useSelector(state => state.walletData);
+  const { torInfo, fee_info, token } = useSelector(state => state.walletData);
   const [deleteOccured, setDeleteOccured] = useState(false);
 
   let testing_mode;
@@ -51,33 +53,6 @@ const TransactionsBTC = (props) => {
   } catch {
     testing_mode = false;
   }
-
-  // First of all run depositInit for selected deposit amount if not already complete
-  props.selectedValues.forEach((item, id) => {
-    if (!item.initialised && item.value !== null) {
-      setLoading(true);
-      dispatch(callDepositInit(item.value))
-        .then((res => {  // when finished update p_addr in GUI
-          if (res.error === undefined) {
-            props.setValueSelectionAddr(id, res.payload[1]);
-            let new_deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData()
-            if (JSON.stringify(deposit_inits) !== JSON.stringify(new_deposit_inits)) {
-              deposit_inits.current = new_deposit_inits.reverse();
-              deposit_inits.current = deposit_inits.current.filter((obj) => {
-                return obj.confirmations === -1;
-              });
-              setState({}); //update state to refresh TransactionDisplay render
-            }
-            setLoading(false);
-          }
-        }))
-      props.setValueSelectionInitialised(id, true)
-    }
-  })
-
-
-  // Fetch all outstanding initialised deposit_inits from wallet
-  let deposit_inits = useRef(callGetUnconfirmedAndUnmindeCoinsFundingTxData());
 
 
   useEffect(() => {
@@ -120,6 +95,46 @@ const TransactionsBTC = (props) => {
       clearInterval(interval);
     }
   }, []);
+
+  const handleDepositInit = (res, id) => {
+    if (res.error === undefined) {
+      props.setValueSelectionAddr(id, res.payload[1]);
+      let new_deposit_inits = callGetUnconfirmedAndUnmindeCoinsFundingTxData()
+      if (JSON.stringify(deposit_inits) !== JSON.stringify(new_deposit_inits)) {
+        deposit_inits.current = new_deposit_inits.reverse();
+        deposit_inits.current = deposit_inits.current.filter((obj) => {
+          return obj.confirmations === -1;
+        });
+        //setState({}); //update state to refresh TransactionDisplay render
+      }
+      setLoading(false);
+    }
+  }
+
+  // First of all run depositInit for selected deposit amount if not already complete
+  props.selectedValues.forEach((item, id) => {
+    if (!item.initialised && item.value !== null) {
+      setLoading(true);
+      if(fee_info.withdraw > 0){
+        dispatch(callDepositInit(item.value))
+          .then((res => {  // when finished update p_addr in GUI
+            handleDepositInit(res, id);
+          }))
+        props.setValueSelectionInitialised(id, true)
+      } else {
+        dispatch(callTokenDepositInit({value: item.value, token: token.token.id}))
+        .then((res => {   // when finished update p_addr in GUI
+          handleDepositInit(res, id);
+          callSpendToken(token.token.id, item.value)
+        }))
+      props.setValueSelectionInitialised(id, true)
+      }
+    }
+  })
+
+
+  // Fetch all outstanding initialised deposit_inits from wallet
+  let deposit_inits = useRef(callGetUnconfirmedAndUnmindeCoinsFundingTxData());
 
 
   // ** FOR TESTING **

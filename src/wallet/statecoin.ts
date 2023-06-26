@@ -1029,4 +1029,18 @@ export interface ExpiryData {
   confirmations: number;
 }
 
-export interface InclusionProofSMT {}
+export interface Token {
+  id: string,
+  btc: string,
+  ln: string
+}
+
+export interface TokenData {
+  token: Token,
+  values: number[]
+}
+
+
+export interface InclusionProofSMT {
+
+}

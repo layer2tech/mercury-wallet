@@ -8,15 +8,83 @@
 // 4. Verify funding txid and proof key in SM
 
 'use strict';
-import { keyGen, PROTOCOL, sign } from "./ecdsa";
-import { txBackupBuild, getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE } from "../";
-import { FeeInfo } from "./info_api";
-import { getSigHash, pubKeyTobtcAddr } from "../util";
+import { keyGen, keyGenToken, PROTOCOL, sign } from "./ecdsa";
+import { getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE } from "../";
+import { FeeInfo, getStateChain, StateChainDataAPI } from "./info_api";
+import { getSigHash, pubKeyTobtcAddr, txBuilder } from "../util";
 
 import { Network } from 'bitcoinjs-lib';
 import { PrepareSignTxMsg } from "./ecdsa";
+import { Token } from "../statecoin";
+import { GET_ROUTE } from "../http_client";
+const Promise = require('bluebird');
 let typeforce = require('typeforce');
 
+// Init Token -> return BTC address and LN invoice for X token amount
+export const tokenInit = async (
+  http_client: HttpClient | MockHttpClient,
+  token_amount: number
+): Promise<Token> => {
+
+  // May need to add proof of work here
+
+  let token_amount_str = token_amount.toString();
+  let res = await http_client.get(GET_ROUTE.TOKEN_INIT, token_amount_str);
+  
+  console.log(res);
+
+  let token = {
+    id: res.token_id,
+    btc: res.btc_payment_address,
+    ln: res.lightning_invoice.bolt11
+  }
+  
+  return token
+}
+
+export const tokenVerify = async (
+  http_client: HttpClient | MockHttpClient,
+  token_id: string
+) => {
+
+  console.log(token_id);
+
+  let verify = await http_client.get(GET_ROUTE.TOKEN_VERIFY, token_id)
+
+  console.log(verify);
+
+  return verify
+
+}
+
+export const tokenDepositInit = async (
+  http_client: HttpClient | MockHttpClient,
+  wasm_client: any,
+  token_id: string,
+  proof_key: string,
+  secret_key: string,
+  amount: number
+): Promise<StateCoin> => {
+  // Init. session - Receive shared wallet ID
+  let deposit_msg1 = {
+    auth: "authstr",
+    proof_key: String(proof_key),
+    token_id: token_id,
+    amount: amount,
+  };
+  
+  let deposit_init_res = await http_client.post(POST_ROUTE.POD_DEPOSIT_INIT, deposit_msg1);
+  let shared_key_id = deposit_init_res.id;
+  typeforce(typeforce.String, shared_key_id)
+
+
+  // 2P-ECDSA with state entity to create a Shared key
+  let statecoin = await keyGenToken(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT );
+
+  statecoin.is_deposited=true
+
+  return statecoin
+}
 
 // Deposit Init. Generate shared key with stateChain Entity.
 // Return Shared_key_id, statecoin and address to send funds to.
@@ -59,7 +127,8 @@ export const depositConfirm = async (
 ): Promise<StateCoin> => {
   // Get state entity fee info
   let fee_info: FeeInfo = await getFeeInfo(http_client);
-  let withdraw_fee = Math.floor((statecoin.value * fee_info.withdraw) / 10000);
+  let nSequence = 0xFFFFFFFE;
+  
 
   // Calculate initial locktime
   let init_locktime = statecoin.init_locktime;
@@ -68,9 +137,24 @@ export const depositConfirm = async (
     throw Error("depositConfirm - statecoin.init_locktime not set.")
   } 
 
+  let sc_infos: StateChainDataAPI[] = [];
+
+  let statechain: StateChainDataAPI = {
+    utxo: {
+      txid: statecoin.funding_txid,
+      vout: statecoin.funding_vout
+    },
+    amount: statecoin.value,
+    chain: [statecoin.statechain_id],
+    locktime: init_locktime
+  };
+
+  sc_infos.push(statechain);
+
   // Build unsigned backup tx
   let backup_receive_addr = pubKeyTobtcAddr(statecoin.proof_key, network);
-  let tx_backup_unsigned = txBackupBuild(network, statecoin.funding_txid, statecoin.funding_vout, backup_receive_addr, statecoin.value, fee_info.address, withdraw_fee, init_locktime, fee_info.backup_fee_rate).buildIncomplete();
+
+  let tx_backup_unsigned = txBuilder(network, sc_infos, backup_receive_addr, fee_info, nSequence, fee_info.backup_fee_rate, init_locktime).buildIncomplete();
 
   //co sign funding tx input signatureHash
   let pk = statecoin.getSharedPubKey();

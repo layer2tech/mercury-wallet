@@ -414,6 +414,10 @@ ol.go2441762052 {
     color: var(--container) !important;
 }
 
+.deposit button.continue{
+    margin-left: 12px;
+}
+
 @media only screen and (max-width: 768px)  {
     .deposit-main {
         display: block;
