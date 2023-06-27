@@ -145,6 +145,7 @@ const initialState = {
     msg: "",
   },
   channel_events: [],
+  excluded_txids: []
 };
 
 // Check if a wallet is loaded in memory
@@ -1883,6 +1884,12 @@ const WalletSlice = createSlice({
         },
       };
     },
+    setExcludedTxids(state, action) {
+      return {
+        ...state,
+        excluded_txids: action.payload,
+      };
+    }
   },
   extraReducers: {
     // Pass rejects through to error_dialogue for display to user.
@@ -2083,6 +2090,7 @@ export const {
   setShowInvoicePopup,
   setSuccessMessage,
   setSuccessMessageSeen,
+  setExcludedTxids
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 

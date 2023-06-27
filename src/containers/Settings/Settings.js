@@ -3,7 +3,7 @@ import settings from "../../images/settings.png";
 
 import React, { useState, useEffect } from "react";
 import { Link, withRouter, Redirect } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import icon2 from "../../images/icon2.png";
 import info from "../../images/info.png";
 
@@ -34,6 +34,7 @@ import {
   callIsTestnet,
   callGetNetwork,
   setError,
+  setExcludedTxids
 } from "../../features/WalletDataSlice";
 
 import Loading from "../../components/Loading/Loading";
@@ -51,6 +52,8 @@ const SettingsPage = (props) => {
   } catch (error) {
     console.warn("Can not get config", error);
   }
+
+  const { excluded_txids } = useSelector((state) => state.walletData);
 
   const [notifications, setNotification] = useState(config.notifications);
   const [singleSwapMode, setSingleSwapMode] = useState(config.singleSwapMode);
@@ -71,7 +74,7 @@ const SettingsPage = (props) => {
   const [showSeed, setShowSeed] = useState(false);
   const [checkLoading, setCheckLoading] = useState(false);
   const [networkType, setNetworkType] = useState(getNetworkType())
-  const [txidsToExclude, setTxidsToExclude] = useState('');
+  const [txidsToExclude, setTxidsToExclude] = useState(excluded_txids.join('\n'));
 
   useEffect(() => {
     if (
@@ -140,6 +143,7 @@ const SettingsPage = (props) => {
         return;
       }
     }
+    dispatch(setExcludedTxids(txids));
     callUpdateConfig({
       state_entity_endpoint: stateEntityAddr,
       swap_conductor_endpoint: swapAddr,
