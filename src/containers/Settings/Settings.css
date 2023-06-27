@@ -20,7 +20,7 @@
     margin-bottom: 15px;
 }
 
-.settings .content .inputs .inputs-item input, .content .btns-radios input {
+.settings .content .inputs .inputs-item input, .content .btns-radios input, textarea {
     display: block;
     position: relative;
     width: 80%;
@@ -48,7 +48,7 @@
     margin-right: 4%;
 }
 
-.input-group .inputs-item input {
+.input-group .inputs-item input, textarea {
     width: 100% !important;
 }
 
@@ -67,7 +67,7 @@
 
 }
 
-.settings .content .input:focus, .settings .content .input {
+.settings .content .input:focus, .settings .content .input, textarea {
     outline: none !important;
 }
 
@@ -473,4 +473,20 @@ input.quantity {
     position: absolute;
     left: -15px;
     top: 0px;
+}
+
+.exclude-list-container {
+    margin-top: 30px;
+}
+
+.exclude-list-container textarea {
+    height: 96px !important;
+}
+
+.exclude-list-container label {
+    top: -10px !important;
+    left: 10px !important;
+    background: var(--container);
+    padding: 0 10px;
+    color: var(--text-primary);
 }

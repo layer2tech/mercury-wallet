@@ -33,6 +33,7 @@ import {
   getNetworkType,
   callIsTestnet,
   callGetNetwork,
+  setError,
 } from "../../features/WalletDataSlice";
 
 import Loading from "../../components/Loading/Loading";
@@ -70,6 +71,7 @@ const SettingsPage = (props) => {
   const [showSeed, setShowSeed] = useState(false);
   const [checkLoading, setCheckLoading] = useState(false);
   const [networkType, setNetworkType] = useState(getNetworkType())
+  const [txidsToExclude, setTxidsToExclude] = useState('');
 
   useEffect(() => {
     if (
@@ -112,6 +114,10 @@ const SettingsPage = (props) => {
       [evt.target.name]: evt.target.value,
     });
   };
+
+  const onTxidsToExcludeChange = (evt) => {
+    setTxidsToExclude(evt.target.value);
+  }
   //const decreaseMinAnonSet = (e) => { minAnonSet>3 ? (setMinAnonSet(minAnonSet-1)):(e.preventDefault()) };
   //const increaseMinAnonSet = (e) => { minAnonSet>=10?(e.preventDefault()):(setMinAnonSet(minAnonSet+1))};
 
@@ -120,8 +126,20 @@ const SettingsPage = (props) => {
     return <Redirect to="/" />;
   }
 
+  const isTxidValid = (txid) => {
+    const pattern = /^[A-Fa-f0-9]{64}:\d+$/;
+    return pattern.test(txid);
+  }
+
   // buttons
   const saveButtonOnClick = () => {
+    const txids = txidsToExclude.trim().split(/[\s,]+/);
+    for (let i = 0; i < txids.length; i++) {
+      if (!isTxidValid(txids[i])) {
+        dispatch(setError({ msg: "Invalid txid: " + txids[i] }))
+        return;
+      }
+    }
     callUpdateConfig({
       state_entity_endpoint: stateEntityAddr,
       swap_conductor_endpoint: swapAddr,
@@ -488,6 +506,21 @@ const SettingsPage = (props) => {
                       <span>{callDeriveXpub()}</span>
                     </div>
                   </CopiedButton>
+                </div>
+              </div>
+              <div className="exclude-list-container">
+                <h2>TXs to exclude during swap</h2>
+                <div className="inputs-item">
+                  <textarea
+                    id="exclude-list-txids"
+                    type="text"
+                    name="TxIDs"
+                    value={txidsToExclude}
+                    onChange={onTxidsToExcludeChange}
+                  />
+                  <label className="control-label" htmlFor="exclude-list-txids">
+                    TxID:vout
+                  </label>
                 </div>
               </div>
             </div>
