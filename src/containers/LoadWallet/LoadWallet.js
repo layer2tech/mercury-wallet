@@ -70,6 +70,7 @@ const LoadWalletPage = (props) => {
   // Attempt to load wallet. If fail display error.
   const onContinueClick = async (event) => {
     // check for password
+    event.preventDefault();
     if (
       typeof selectedWallet === "string" ||
       selectedWallet instanceof String
