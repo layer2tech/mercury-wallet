@@ -136,14 +136,18 @@ const SettingsPage = (props) => {
 
   // buttons
   const saveButtonOnClick = () => {
-    const txids = txidsToExclude.trim().split(/[\s,]+/);
-    for (let i = 0; i < txids.length; i++) {
-      if (!isTxidValid(txids[i])) {
-        dispatch(setError({ msg: "Invalid txid: " + txids[i] }))
-        return;
+    if (txidsToExclude.trim() === '') {
+      dispatch(setExcludedTxids([]));
+    } else {
+      const txids = txidsToExclude.trim().split(/[\s,]+/);
+      for (let i = 0; i < txids.length; i++) {
+        if (!isTxidValid(txids[i])) {
+          dispatch(setError({ msg: "Invalid txid: " + txids[i] }))
+          return;
+        }
       }
+      dispatch(setExcludedTxids(txids));
     }
-    dispatch(setExcludedTxids(txids));
     callUpdateConfig({
       state_entity_endpoint: stateEntityAddr,
       swap_conductor_endpoint: swapAddr,
