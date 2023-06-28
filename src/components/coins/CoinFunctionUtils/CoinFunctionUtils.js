@@ -119,3 +119,12 @@ export const coinSort = (sortCoin) => {
       return 0;
     }
 }
+
+export const getParticipantsByCoinValue = (swap_group_data, amount) => {
+  for (let i = 0; i < swap_group_data.length; i++) {
+    if (swap_group_data[i][0].amount === amount) {
+      return swap_group_data[i][1].number;
+    }
+  }
+  return 0; // Return 0 if no matching amount is found
+}
