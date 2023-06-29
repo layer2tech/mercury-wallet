@@ -235,7 +235,10 @@ const Coin = (props) => {
         className={`coin-item ${
           swapPage || sendPage || withdrawPage ? props.coin_data.status : ""
         } ${isSelected(props.coin_data.shared_key_id) ? "selected" : ""}`}
-        onClick={() => {
+        onClick={(event) => {
+          if (event.target.className.includes("toggle")) {
+            return;
+          }
           if (
             props.coin_data.status === STATECOIN_STATUS.SWAPLIMIT &&
             swapPage
@@ -438,8 +441,13 @@ const Coin = (props) => {
               </span>
             </div>
           )}
-
-          <AutoSwapToggle coin_data={props.coin_data} />
+          <div className="autoSwapToggle">
+            <AutoSwapToggle coin_data={props.coin_data} />
+            <Tooltip
+              boldText={"Swap pool:"}
+              text={`Currently ${props.coin_data.participants} coins participating.`}
+            />
+          </div>
 
           {props.showCoinStatus ? (
             <div className="coin-status-or-txid">

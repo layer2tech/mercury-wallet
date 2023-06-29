@@ -13,7 +13,9 @@ import {
   setIntervalIfOnline,
   updateInSwapValues,
   checkSwapAvailability,
-  callUpdateSwapGroupInfo
+  callUpdateSwapGroupInfo,
+  callClearSwapGroupInfo,
+  callGetSwapGroupInfo
 } from '../../features/WalletDataSlice';
 import SortBy from './SortBy/SortBy';
 import FilterBy from './FilterBy/FilterBy';
@@ -27,7 +29,7 @@ import {
   callDoSwap
 } from "../../features/WalletDataSlice";
 import Coin from "./Coin/Coin";
-import { coinSort, getPrivacyScoreDesc } from "./CoinFunctionUtils/CoinFunctionUtils";
+import { coinSort, getPrivacyScoreDesc, getParticipantsByCoinValue } from "./CoinFunctionUtils/CoinFunctionUtils";
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
@@ -82,6 +84,7 @@ const CoinsList = (props) => {
 
   const [initCoins, setInitCoins] = useState({});
 
+  const [swapGroupsData, setSwapGroupsData] = useState([]);
 
   let all_coins_data = [...coins.unspentCoins, ...coins.unConfirmedCoins];
 
@@ -140,7 +143,8 @@ const CoinsList = (props) => {
     // coin is removed from list immediately
     swap,
     // Update blockheight quicker on wallet start
-    blockHeightLoad
+    blockHeightLoad,
+    swapGroupsData
   ]);
 
   // Re-fetch every 5 seconds and update state to refresh render
@@ -198,6 +202,31 @@ const CoinsList = (props) => {
     }
   }, [callGetUnspentStatecoins, balance_info, swap])
 
+  useEffect(() => {
+    if (torInfo.online === false) {
+      return
+    }
+    let isMounted = true
+    updateSwapInfo(isMounted)
+    return () => { 
+      isMounted = false; 
+    }
+  },
+    [swapLoad, props.refreshSwapGroupInfo]);
+
+  const updateSwapInfo = (isMounted) => {
+    if (isMounted === true) {
+      if (torInfo.online === true) {
+        dispatch(callUpdateSwapGroupInfo());  
+      } else {
+        dispatch(callClearSwapGroupInfo());  
+      }
+      let swap_groups_data = callGetSwapGroupInfo();
+      let swap_groups_array = swap_groups_data ? Array.from(swap_groups_data.entries()) : [];
+      let sorted_swap_groups_entry = swap_groups_array.sort((a, b) => b[0].amount - a[0].amount)
+      setSwapGroupsData(sorted_swap_groups_entry) //update state to refresh TransactionDisplay render
+    }
+  }
 
   const filterCoinsByStatus = (coins = [], status) => {
     return coins.filter(coin => coin.status === status);
@@ -337,7 +366,7 @@ const CoinsList = (props) => {
         ) ? <SortBy sortCoin={sortCoin} setSortCoin={setSortCoin} swap={swap} /> : null}
       </div>
       {all_coins_data.map(item => {
-        item = {...item, privacy_data: getPrivacyScoreDesc(item)}
+        item = {...item, privacy_data: getPrivacyScoreDesc(item), participants: getParticipantsByCoinValue(swapGroupsData, item.value)}
         return (
           <Coin
             key={item.shared_key_id}

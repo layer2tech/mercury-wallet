@@ -15,6 +15,8 @@ const PanelCoinsActivity = (props) => {
   const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [selectedChannels, setSelectedChannels] = useState([]);
 
+  const [refreshSwapGroupInfo, setRefreshSwapGroupInfo] = useState(false);
+
   const { filterBy, walletMode } = useSelector((state) => state.walletData);
 
   const defaultTabTitle =
@@ -66,6 +68,8 @@ const PanelCoinsActivity = (props) => {
                     showCoinStatus={true}
                     largeScreen
                     isMainPage={true}
+                    refreshSwapGroupInfo={refreshSwapGroupInfo}
+                    setRefreshSwapGroupInfo={setRefreshSwapGroupInfo}
                   />
                 </Tab>
                 <Tab eventKey="ACTIVITY" title="ACTIVITY">
