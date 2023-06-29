@@ -142,7 +142,9 @@ const ConfirmSeed = (props) => {
       }
 
       // network call
-      LDKClient.post("/startLDK", { network: networkPostArg });
+      // close the LDK
+      await LDKClient.get("/closeLDK");
+      await LDKClient.post("/startLDK", { network: networkPostArg });
     } catch (e) {
       event.preventDefault();
       dispatch(setError({ msg: e.message }));

@@ -29,7 +29,13 @@ import {
   proofKeyFromXpub,
 } from "./util";
 import { MasterKey2 } from "./mercury/ecdsa";
-import { depositConfirm, depositInit, tokenDepositInit, tokenInit, tokenVerify } from "./mercury/deposit";
+import {
+  depositConfirm,
+  depositInit,
+  tokenDepositInit,
+  tokenInit,
+  tokenVerify,
+} from "./mercury/deposit";
 import {
   withdraw,
   withdraw_init,
@@ -210,7 +216,7 @@ export class Wallet {
 
     this.activity = new ActivityLog();
 
-    if (networkType === undefined){
+    if (networkType === undefined) {
       this.networkType = NETWORK_TYPE.TOR;
     } else {
       this.networkType = networkType;
@@ -242,7 +248,7 @@ export class Wallet {
 
     this.statechain_id_set = new Set();
 
-    this.tokens = []
+    this.tokens = [];
 
     this.tor_circuit = [];
 
@@ -557,7 +563,7 @@ export class Wallet {
 
       new_wallet.current_sce_addr = json_wallet.current_sce_addr;
 
-      if(json_wallet.tokens) new_wallet.tokens = json_wallet.tokens
+      if (json_wallet.tokens) new_wallet.tokens = json_wallet.tokens;
       if (json_wallet.warnings !== undefined)
         new_wallet.warnings = json_wallet.warnings;
       // Make sure properties added to the wallet are handled
@@ -864,61 +870,6 @@ export class Wallet {
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
 
-    let channelsInfo = await wallet.lightning_client.getChannels(wallet.name);
-    let peerInfo = await wallet.lightning_client.getPeers();
-
-    let mergedInfo = channelsInfo.map((channel) => {
-      let peer = peerInfo.find((peer: any) => peer.id === channel.peer_id);
-      return {
-        ...channel,
-        host: peer.host,
-        port: peer.port,
-        pubkey: peer.pubkey,
-      };
-    });
-
-    let networkPostArg = "";
-    if (wallet.config.network.bech32 === "tb") {
-      networkPostArg = "test";
-    } else if (wallet.config.network.bech32 === "bc") {
-      networkPostArg = "prod";
-    } else if (wallet.config.network.bech32 === "bcrt") {
-      networkPostArg = "dev";
-    }
-    // network call
-    await LDKClient.post("/startLDK", { network: networkPostArg });
-
-    async function connectToPeers() {
-      // Connect to peer on an interval loop
-      console.log("reconnecting to peer...");
-      console.log("mergedInfo.length:", mergedInfo.length);
-      // for every channel reconnect to its peer
-      for (var i = 0; i < mergedInfo.length; i++) {
-        let pubkey = mergedInfo[i].pubkey;
-        let host = mergedInfo[i].host;
-        let port = mergedInfo[i].port;
-
-        console.log("try to connect to pubkey->", pubkey);
-
-        try {
-          await LDKClient.post("/peer/connectToPeer", {
-            pubkey,
-            host,
-            port,
-          });
-        } catch (error: any) {
-          console.log(error.response.data); // "Error connecting to peer"
-        }
-      }
-    }
-
-    // Call the function once immediately
-    connectToPeers();
-
-    // Regularly reconnect to peers every 60 seconds
-    setInterval(connectToPeers, 60000);
-
-    wallet.saveChannels(channelsInfo);
     wallet.setActive();
     wallet.nodeId = await wallet.lightning_client.getNodeId();
     return wallet;
@@ -999,17 +950,16 @@ export class Wallet {
     return n_recovered;
   }
 
-  newHttpClient(http_client: HttpClient | MockHttpClient){
+  newHttpClient(http_client: HttpClient | MockHttpClient) {
     if (http_client) {
       return http_client;
     }
-    if(this.config.testing_mode === true){
-      return new MockHttpClient()
-    }
-    else {
-      let http = new HttpClient('http://localhost:3001', true);
+    if (this.config.testing_mode === true) {
+      return new MockHttpClient();
+    } else {
+      let http = new HttpClient("http://localhost:3001", true);
       this.set_adapter_endpoints();
-      return http
+      return http;
     }
   }
 
@@ -1861,48 +1811,45 @@ export class Wallet {
     return true;
   }
 
-  getToken(token_id: string){
-    let token = this.tokens.filter( item => item.token.id === token_id );
-    if(token[0]){
-      return token[0]
-    } else{
-      return null
+  getToken(token_id: string) {
+    let token = this.tokens.filter((item) => item.token.id === token_id);
+    if (token[0]) {
+      return token[0];
+    } else {
+      return null;
     }
   }
-  
-  getTokens(){
-    return this.tokens
+
+  getTokens() {
+    return this.tokens;
   }
 
-  spendToken(token_id: string, amount: number){
-
+  spendToken(token_id: string, amount: number) {
     let token = this.getToken(token_id);
-    if(token){
-      let values = Array.from(token.values)
+    if (token) {
+      let values = Array.from(token.values);
       let index = values.indexOf(amount);
-      values.splice(index,1);
+      values.splice(index, 1);
       this.deleteToken(token_id);
       let updated_token = {
         token: token.token,
-        values: values
-      }
+        values: values,
+      };
       this.addToken(updated_token);
     }
-
-
 
     this.save();
   }
 
   //Add token to wallet
-  addToken(token: TokenData){
+  addToken(token: TokenData) {
     this.tokens.push(token);
     this.save();
     return token;
   }
 
   deleteToken(token_id: string) {
-    this.tokens = this.tokens.filter(item => {
+    this.tokens = this.tokens.filter((item) => {
       if (item.token.id !== token_id) {
         return item;
       }
@@ -2067,33 +2014,29 @@ export class Wallet {
 
   // Initialise Token Deposit - Pay on Deposit
   async tokenInit(token_amount: number) {
-
     let token = await tokenInit(this.http_client, token_amount);
-    
+
     return token;
   }
 
-  async tokenVerify(token_id: string){
-
-    let verif = await tokenVerify(this.http_client,token_id);
+  async tokenVerify(token_id: string) {
+    let verif = await tokenVerify(this.http_client, token_id);
     // Checks verification of last token with ID: token_id
-    return verif
+    return verif;
   }
 
-  async tokenDepositInit (value: number, token_id: string){
-
+  async tokenDepositInit(value: number, token_id: string) {
     log.info("Depositing Init. " + fromSatoshi(value) + " BTC");
 
     let proof_key_bip32 = await this.genProofKey(); // Generate new proof key
 
-    let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
-    let proof_key_priv = proof_key_bip32.privateKey!.toString("hex")
+    let proof_key_pub = proof_key_bip32.publicKey.toString("hex");
+    let proof_key_priv = proof_key_bip32.privateKey!.toString("hex");
 
     let wasm_client = await this.getWasm();
 
     let statecoin = await tokenDepositInit(
-      
-      this.http_client, 
+      this.http_client,
       wasm_client,
       token_id,
       proof_key_pub,
@@ -2106,7 +2049,7 @@ export class Wallet {
 
     statecoin.value = value;
 
-    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
+    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key);
 
     //Coin created and activity list updated
     this.addStatecoin(statecoin, ACTION.INITIATE);
@@ -2115,16 +2058,15 @@ export class Wallet {
     let p_addr = statecoin.getBtcAddress(this.config.network);
 
     // Import the BTC address into the wallet if using the electum-personal-server
-    await this.importAddress(p_addr)
+    await this.importAddress(p_addr);
 
     // Begin task waiting for tx in mempool and update StateCoin status upon success.
-    this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
+    this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value);
 
     log.info("Deposit Init done. Waiting for coins sent to " + p_addr);
     await this.saveStateCoinsList();
-    
-    return [statecoin.shared_key_id, p_addr]
-    
+
+    return [statecoin.shared_key_id, p_addr];
   }
 
   // Initialise deposit
