@@ -191,6 +191,7 @@ describe("UI performance", function () {
     clearWallet(walletNameBackup);
   });
 
+  /* This test is in the e2e test
   test('responsiveness of main buttons and "generate address"', async function () {
     console.log("Go to main page");
     await goToMainPage();
@@ -232,4 +233,5 @@ describe("UI performance", function () {
     }
     expect(time_diff / n_iter).toBeLessThan(1200);
   });
+  */
 });
