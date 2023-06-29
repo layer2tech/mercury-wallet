@@ -192,11 +192,17 @@ describe("UI performance", function () {
   });
 
   test('responsiveness of main buttons and "generate address"', async function () {
+    console.log("Go to main page");
     await goToMainPage();
+    console.log("Click Receive Btn");
     await testClickTimeAverage("Receive");
+    console.log("Click Send Btn");
     await testClickTimeAverage("Send");
+    console.log("Click Swap Btn");
     await testClickTimeAverage("Swap");
+    console.log("Click Deposit Btn");
     await testClickTimeAverage("Deposit");
+    console.log("Click Withdraw Btn");
     await testClickTimeAverage("Withdraw");
 
     //Test address generation
