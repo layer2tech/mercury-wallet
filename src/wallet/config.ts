@@ -157,7 +157,14 @@ export class Config {
       this.block_explorer_endpoint =
         NETWORK_CONFIG[networkTypeLcase].testnet_block_explorer_endpoint;
     } else {
-      throw new Error("No valid network was set in wallet.");
+      this.state_entity_endpoint =
+        NETWORK_CONFIG[networkTypeLcase].mainnet_state_entity_endpoint;
+      this.swap_conductor_endpoint =
+        NETWORK_CONFIG[networkTypeLcase].mainnet_swap_conductor_endpoint;
+      this.electrum_config =
+        NETWORK_CONFIG[networkTypeLcase].mainnet_electrum_config;
+      this.block_explorer_endpoint =
+        NETWORK_CONFIG[networkTypeLcase].mainnet_block_explorer_endpoint;
     }
 
     this.tor_proxy = NETWORK_CONFIG[networkTypeLcase].proxy;
