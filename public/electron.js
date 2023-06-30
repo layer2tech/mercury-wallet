@@ -249,6 +249,8 @@ function createWindow() {
   }
 }
 
+let expressProcess; // store the spawned process
+
 function startExpressServer() {
   if (isPackaged === true) {
     lightning_adapter_directory = joinPath(
@@ -271,7 +273,7 @@ function startExpressServer() {
     "--experimental-specifier-resolution=node",
     lightning_adapter_path,
   ];
-  const expressProcess = spawn(command, args, {
+  expressProcess = spawn(command, args, {
     cwd: lightning_adapter_directory,
     shell: true,
     stdio: "ignore",
@@ -311,7 +313,9 @@ app.on("ready", () => {
 
   // Clears cookie storage
   // Persisted web store must be wiped for electron in case redux store has changed
-  // session.defaultSession.clearStorageData([], data => {})
+  session.defaultSession.clearStorageData([], (data) => {});
+
+  terminate_lightning_adapter();
   startExpressServer();
 
   terminate_tor_process();
@@ -327,6 +331,7 @@ app.on("window-all-closed", async () => {
   terminate_mercurywallet_process(null, "i2p");
   //TODO: Uncomment
   // terminate_mercurywallet_process(init_lightning_adapter, null);
+  terminate_lightning_adapter();
   app.quit();
 });
 
@@ -375,6 +380,7 @@ app.on("before-quit", async function () {
   terminate_mercurywallet_process(null, "tor");
   //TODO: Uncomment
   // terminate_mercurywallet_process(init_lightning_adapter, null);
+  terminate_lightning_adapter();
 });
 
 app.allowRendererProcessReuse = false;
@@ -486,6 +492,15 @@ const terminate_tor_process = () => {
     );
   }
 };
+
+function terminate_lightning_adapter() {
+  // Check if the expressProcess is running
+  if (expressProcess && !expressProcess.killed) {
+    // Terminate the expressProcess
+    expressProcess.kill();
+    console.log("Express server closed.");
+  }
+}
 
 // Terminate the parent process of any running mercurywallet processes.
 function terminate_mercurywallet_process(init_new, network) {

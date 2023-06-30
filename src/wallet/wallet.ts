@@ -871,7 +871,6 @@ export class Wallet {
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
 
     wallet.setActive();
-    wallet.nodeId = await wallet.lightning_client.getNodeId();
     return wallet;
   }
 

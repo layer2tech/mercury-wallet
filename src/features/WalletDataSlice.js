@@ -295,7 +295,8 @@ export async function loadWalletFromMemory(name, password) {
   wallet.disableAutoSwaps();
   log.info("Wallet " + name + " loaded from memory. ");
 
-  startLightningLDK(wallet);
+  await startLightningLDK(wallet);
+  wallet.nodeId = await wallet.lightning_client.getNodeId();
 
   return wallet;
 }
