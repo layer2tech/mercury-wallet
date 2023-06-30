@@ -94,15 +94,24 @@ if (isPackaged === true) {
     "server",
     "index.js"
   );
-
-  lightning_adapter_path = joinPath(
-    __dirname,
-    "..",
-    "node_modules",
-    "mercury-wallet-lightning-adapter",
-    "src",
-    "server.js"
-  );
+  if (getPlatform() == "darwin") {
+    lightning_adapter_path = joinPath(
+      __dirname,
+      "node_modules",
+      "mercury-wallet-lightning-adapter",
+      "src",
+      "server.js"
+    );
+    } else {
+    lightning_adapter_path = joinPath(
+      __dirname,
+      "..",
+      "node_modules",
+      "mercury-wallet-lightning-adapter",
+      "src",
+      "server.js"
+    );    
+  }
 } else {
   resourcesPath = joinPath(rootPath, "resources");
   execPath = joinPath(resourcesPath, getPlatform());
@@ -251,12 +260,20 @@ function createWindow() {
 
 function startExpressServer() {
   if (isPackaged === true) {
-    lightning_adapter_directory = joinPath(
-      __dirname,
-      "..",
-      "node_modules",
-      "mercury-wallet-lightning-adapter"
-    );
+    if(getPlatform() == "darwin") {
+      lightning_adapter_directory = joinPath(
+        __dirname,
+        "node_modules",
+        "mercury-wallet-lightning-adapter"
+      ); 
+    } else {
+      lightning_adapter_directory = joinPath(
+        __dirname,
+        "..",
+        "node_modules",
+        "mercury-wallet-lightning-adapter"
+      );
+    };
   } else {
     lightning_adapter_directory = joinPath(
       rootPath,
