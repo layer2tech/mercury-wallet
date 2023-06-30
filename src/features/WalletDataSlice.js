@@ -296,7 +296,6 @@ export async function loadWalletFromMemory(name, password) {
   log.info("Wallet " + name + " loaded from memory. ");
 
   await startLightningLDK(wallet);
-  wallet.nodeId = await wallet.lightning_client.getNodeId();
 
   return wallet;
 }
@@ -324,6 +323,9 @@ export async function startLightningLDK(wallet) {
 
   // Regularly reconnect to peers every 60 seconds
   setInterval(connectToPeers, 60000);
+
+  // set the node ID
+  wallet.nodeId = await LDKClient.get(LIGHTNING_GET_ROUTE.NODE_ID, {});
 }
 
 export async function connectToPeers(wallet) {
