@@ -24,6 +24,7 @@ import isElectron from "is-electron";
 import WithdrawModal from "../WithdrawModal/WithdrawModal";
 import InvoiceModal from "../InvoiceModal/InvoiceModal";
 import SuccessMessagePopup from "../SuccessMessagePopup/SuccessMessagePopup";
+import { LDKClient } from "../../wallet/ldk_client";
 
 const Header = (props) => {
   const dispatch = useDispatch();
@@ -34,6 +35,9 @@ const Header = (props) => {
     await stopWallet();
     unloadWallet();
     dispatch(setWalletLoaded({ loaded: false }));
+
+    // call close LDK
+    await LDKClient.get("/closeLDK", {});
   };
 
   useEffect(async () => {
@@ -105,7 +109,13 @@ const Header = (props) => {
         </Link>
 
         <div className="menu">
-          {walletLoaded && <TorCircuit online={props.online}  networkType={props.networkType} setNetworkType={props.setNetworkType}/>}
+          {walletLoaded && (
+            <TorCircuit
+              online={props.online}
+              networkType={props.networkType}
+              setNetworkType={props.setNetworkType}
+            />
+          )}
           <div title="Light/Dark mode">
             <label className="toggle2">
               <input

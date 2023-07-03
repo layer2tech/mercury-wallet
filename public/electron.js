@@ -102,7 +102,7 @@ if (isPackaged === true) {
       "src",
       "server.js"
     );
-    } else {
+  } else {
     lightning_adapter_path = joinPath(
       __dirname,
       "..",
@@ -110,7 +110,7 @@ if (isPackaged === true) {
       "mercury-wallet-lightning-adapter",
       "src",
       "server.js"
-    );    
+    );
   }
 } else {
   resourcesPath = joinPath(rootPath, "resources");
@@ -262,12 +262,12 @@ let expressProcess; // store the spawned process
 
 function startExpressServer() {
   if (isPackaged === true) {
-    if(getPlatform() == "darwin") {
+    if (getPlatform() == "darwin") {
       lightning_adapter_directory = joinPath(
         __dirname,
         "node_modules",
         "mercury-wallet-lightning-adapter"
-      ); 
+      );
     } else {
       lightning_adapter_directory = joinPath(
         __dirname,
@@ -275,7 +275,7 @@ function startExpressServer() {
         "node_modules",
         "mercury-wallet-lightning-adapter"
       );
-    };
+    }
   } else {
     lightning_adapter_directory = joinPath(
       rootPath,
@@ -514,7 +514,8 @@ function terminate_lightning_adapter() {
   // Check if the expressProcess is running
   if (expressProcess && !expressProcess.killed) {
     // Terminate the expressProcess
-    expressProcess.kill();
+    // expressProcess.kill();
+    process.kill(expressProcess);
     console.log("Express server closed.");
   }
 }
