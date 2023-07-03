@@ -295,12 +295,6 @@ export async function loadWalletFromMemory(name, password) {
   wallet.disableAutoSwaps();
   log.info("Wallet " + name + " loaded from memory. ");
 
-  try {
-    await startLightningLDK(wallet);
-  } catch (e) {
-    console.log("error in starting LDK");
-  }
-
   return wallet;
 }
 

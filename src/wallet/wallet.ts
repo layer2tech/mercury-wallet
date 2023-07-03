@@ -519,10 +519,10 @@ export class Wallet {
         let json_wallet_network = json_wallet.config.network.bech32;
         if (json_wallet_network === "bcrt") {
           json_wallet.config.network = bitcoin.networks.regtest;
-        } else if (json_wallet_network === "bc") {
-          json_wallet.config.network = bitcoin.networks.bitcoin;
-        } else {
+        } else if (json_wallet_network === "tb") {
           json_wallet.config.network = bitcoin.networks.testnet;
+        } else {
+          json_wallet.config.network = bitcoin.networks.bitcoin;
         }
       }
 
