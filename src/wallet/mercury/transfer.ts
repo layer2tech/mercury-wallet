@@ -40,6 +40,8 @@ import { Wallet } from "../wallet";
 import { ACTION } from "../activity_log";
 import { TransferFinalizeData } from "../types";
 import WrappedLogger from "../../wrapped_logger";
+import { store } from "../../application/reduxStore";
+import { ToolkitStore } from "@reduxjs/toolkit/dist/configureStore";
 
 let bitcoin = require("bitcoinjs-lib");
 let cloneDeep = require("lodash.clonedeep");
@@ -311,13 +313,22 @@ export const getTransferMsg4 = async (
       `Backup tx invalid amount. Expected ${statechain_data.amount}, got ${backup_tx_amount}`
     );
   // 2. Verify the input matches the specified outpoint
+  const tx_backup_hash = tx_backup.ins[0].hash.reverse().toString("hex");
+  const tx_backup_vout = tx_backup.ins[0].index;
   if (
-    tx_backup.ins[0].hash.reverse().toString("hex") !==
+    tx_backup_hash !==
     statechain_data.utxo.txid
   )
     throw new Error("Backup tx invalid input.");
-  if (tx_backup.ins[0].index !== statechain_data.utxo.vout)
+  if (tx_backup_vout !== statechain_data.utxo.vout)
     throw new Error("Backup tx invalid input.");
+  // check if backup tx is present in excluded txids list
+  const backup_txid = `${tx_backup_hash}:${tx_backup_vout}`;
+  const excluded_txids = (store.getState() as any).walletData.excluded_txids;
+  if (excluded_txids.includes(backup_txid)) {
+    throw new Error("Transaction excluded from swap.");
+  }
+
   // 3. Verify the input signature is valid
   tx_backup.ins[0].hash = tx_backup.ins[0].hash.reverse();
   let pk = tx_backup.ins[0].witness[1].toString("hex");
