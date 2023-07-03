@@ -301,6 +301,7 @@ export async function loadWalletFromMemory(name, password) {
 }
 
 export async function startLightningLDK(wallet) {
+  if (wallet === undefined) return;
   // firstly close the LDK if its open
   await LDKClient.get("/closeLDK", {});
 
@@ -319,16 +320,17 @@ export async function startLightningLDK(wallet) {
   await LDKClient.post("/startLDK", payload);
 
   // Call the function once immediately
-  connectToPeers(wallet);
+  await connectToPeers(wallet);
 
   // Regularly reconnect to peers every 60 seconds
-  setInterval(connectToPeers, 60000);
+  //setInterval(connectToPeers, 60000);
 
   // set the node ID
   wallet.nodeId = await LDKClient.get(LIGHTNING_GET_ROUTE.NODE_ID, {});
 }
 
 export async function connectToPeers(wallet) {
+  if (wallet === undefined) return;
   let channelsInfo = await wallet.lightning_client.getChannels(wallet.name);
   let peerInfo = await wallet.lightning_client.getPeers();
 
