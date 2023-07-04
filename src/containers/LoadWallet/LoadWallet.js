@@ -81,6 +81,8 @@ const LoadWalletPage = (props) => {
           passwordEntered
         );
 
+        await startLightningLDK(wallet);
+
         history.push("/home");
         dispatch(setWalletLoaded({ loaded: true }));
 
