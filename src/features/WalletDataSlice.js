@@ -512,6 +512,8 @@ export async function walletFromMnemonic(
     dispatch(setProgressComplete({ msg: "" }));
     router.push("/home");
   });
+
+  return wallet;
 }
 // Try to decrypt wallet. Throw if invalid password
 export const checkWalletPassword = async (password) => {

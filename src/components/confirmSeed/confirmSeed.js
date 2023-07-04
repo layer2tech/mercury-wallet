@@ -8,6 +8,7 @@ import {
   callGetVersion,
   callGetUnspentStatecoins,
   setWalletLoaded,
+  startLightningLDK,
 } from "../../features/WalletDataSlice";
 import "./confirmSeed.css";
 import { LDKClient } from "../../wallet/ldk_client";
@@ -119,7 +120,7 @@ const ConfirmSeed = (props) => {
 
     // Create wallet and load into Redux state
     try {
-      await walletFromMnemonic(
+      let wallet = await walletFromMnemonic(
         dispatch,
         props.wizardState.wallet_name,
         props.wizardState.wallet_password,
@@ -132,19 +133,7 @@ const ConfirmSeed = (props) => {
         network.network
       );
 
-      let networkPostArg = "";
-      if (network.mode === 0) {
-        networkPostArg = "test";
-      } else if (network.mode === 1) {
-        networkPostArg = "prod";
-      } else if (network.mode === 2) {
-        networkPostArg = "dev";
-      }
-
-      // network call
-      // close the LDK
-      await LDKClient.get("/closeLDK");
-      await LDKClient.post("/startLDK", { network: networkPostArg });
+      startLightningLDK(wallet);
     } catch (e) {
       event.preventDefault();
       dispatch(setError({ msg: e.message }));
