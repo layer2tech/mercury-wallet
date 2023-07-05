@@ -4,10 +4,11 @@ import { SwapStep, SWAP_STATUS } from "./swap_utils";
 import { STATECOIN_STATUS } from "..";
 import Swap from "./swap";
 import { RootStateOrAny, useSelector, useStore } from "react-redux";
+import { store } from "../../application/reduxStore";
 
 
 export function swapPhase4(swap: Swap): SwapStep[] {
-  const excluded_txids = useStore().getState().walletData.excluded_txids
+  const excluded_txids = store.getState().walletData.excluded_txids
 
   return [
     // Step 14
