@@ -40,8 +40,6 @@ import { Wallet } from "../wallet";
 import { ACTION } from "../activity_log";
 import { TransferFinalizeData } from "../types";
 import WrappedLogger from "../../wrapped_logger";
-import { store } from "../../application/reduxStore";
-import { ToolkitStore } from "@reduxjs/toolkit/dist/configureStore";
 
 let bitcoin = require("bitcoinjs-lib");
 let cloneDeep = require("lodash.clonedeep");

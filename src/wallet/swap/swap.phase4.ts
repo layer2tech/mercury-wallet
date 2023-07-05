@@ -2,10 +2,13 @@
 'use strict';
 import { SwapStep, SWAP_STATUS } from "./swap_utils";
 import { STATECOIN_STATUS } from "..";
-import Swap from "./swap"
+import Swap from "./swap";
+import { RootStateOrAny, useSelector } from "react-redux";
 
 
 export function swapPhase4(swap: Swap): SwapStep[] {
+  const { excluded_txids } = useSelector((state: RootStateOrAny) => state.walletData.excluded_txids);
+
   return [
     // Step 14
     new SwapStep( 
@@ -19,7 +22,7 @@ export function swapPhase4(swap: Swap): SwapStep[] {
         if (swap.statecoin.swap_transfer_msg_3_receiver === null) throw Error("No transfer_msg_3_receiver. Exiting swap.")
         return true
       },
-      swap.transferReceiver
+      () => swap.transferReceiver(excluded_txids)
     ),
     // Step 15
     new SwapStep(

@@ -761,7 +761,7 @@ export default class Swap {
     return transfer_msg_4;
   };
 
-  do_transfer_receiver = async (): Promise<TransferFinalizeData> => {
+  do_transfer_receiver = async (excluded_txids: string[] = []): Promise<TransferFinalizeData> => {
     log.debug("do_transfer_receiver...");
     let http_client = this.clients.http_client;
     let electrum_client = this.clients.electrum_client;
@@ -791,7 +791,8 @@ export default class Swap {
       req_confirmations,
       block_height,
       value,
-      transfer_msg_4
+      transfer_msg_4,
+      excluded_txids
     );
     typeforce(types.TransferFinalizeData, finalize_data);
     return finalize_data;
@@ -806,10 +807,10 @@ export default class Swap {
     }
   };
 
-  transferReceiver = async (): Promise<SwapStepResult> => {
+  transferReceiver = async (excluded_txids: string[] = []): Promise<SwapStepResult> => {
     try {
       this.updateBlockHeight();
-      await this.getTransferFinalizedData();
+      await this.getTransferFinalizedData(excluded_txids);
       this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase7;
       return SwapStepResult.Ok("transferReceiver");
     } catch (err: any) {
@@ -875,11 +876,11 @@ export default class Swap {
     );
   };
 
-  async getTransferFinalizedData(): Promise<TransferFinalizeData> {
+  async getTransferFinalizedData(excluded_txids: string[] = []): Promise<TransferFinalizeData> {
     log.debug("getTransferFinalizedData...");
     let data = this.statecoin.swap_transfer_finalized_data;
     if (data === null || data === undefined) {
-      data = await this.do_transfer_receiver();
+      data = await this.do_transfer_receiver(excluded_txids);
       this.statecoin.swap_transfer_finalized_data = data;
       try {
         await this.wallet.saveStateCoin(this.statecoin);
