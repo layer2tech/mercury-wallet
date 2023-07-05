@@ -79,13 +79,15 @@ export default class Swap {
   n_retries: number;
   resume: boolean;
   step_timer: Timer;
+  excluded_txids: string[];
 
   constructor(
     wallet: Wallet,
     statecoin: StateCoin,
     proof_key_der: BIP32Interface,
     new_proof_key_der: BIP32Interface,
-    resume: boolean = false
+    resume: boolean = false,
+    excluded_txids: string[] = []
   ) {
     this.wallet = wallet;
     this.clients = SwapPhaseClients.from_wallet(wallet);
@@ -103,6 +105,7 @@ export default class Swap {
     this.n_retries = 0;
     this.resume = resume;
     this.step_timer = new Timer();
+    this.excluded_txids = excluded_txids;
   }
 
   setSwapSteps = (steps: SwapStep[]) => {
@@ -761,7 +764,7 @@ export default class Swap {
     return transfer_msg_4;
   };
 
-  do_transfer_receiver = async (excluded_txids: string[] = []): Promise<TransferFinalizeData> => {
+  do_transfer_receiver = async (): Promise<TransferFinalizeData> => {
     log.debug("do_transfer_receiver...");
     let http_client = this.clients.http_client;
     let electrum_client = this.clients.electrum_client;
@@ -792,7 +795,7 @@ export default class Swap {
       block_height,
       value,
       transfer_msg_4,
-      excluded_txids
+      this.excluded_txids
     );
     typeforce(types.TransferFinalizeData, finalize_data);
     return finalize_data;
@@ -807,10 +810,10 @@ export default class Swap {
     }
   };
 
-  transferReceiver = async (excluded_txids: string[] = []): Promise<SwapStepResult> => {
+  transferReceiver = async (): Promise<SwapStepResult> => {
     try {
       this.updateBlockHeight();
-      await this.getTransferFinalizedData(excluded_txids);
+      await this.getTransferFinalizedData();
       this.statecoin.ui_swap_status = UI_SWAP_STATUS.Phase7;
       return SwapStepResult.Ok("transferReceiver");
     } catch (err: any) {
@@ -876,11 +879,11 @@ export default class Swap {
     );
   };
 
-  async getTransferFinalizedData(excluded_txids: string[] = []): Promise<TransferFinalizeData> {
+  async getTransferFinalizedData(): Promise<TransferFinalizeData> {
     log.debug("getTransferFinalizedData...");
     let data = this.statecoin.swap_transfer_finalized_data;
     if (data === null || data === undefined) {
-      data = await this.do_transfer_receiver(excluded_txids);
+      data = await this.do_transfer_receiver();
       this.statecoin.swap_transfer_finalized_data = data;
       try {
         await this.wallet.saveStateCoin(this.statecoin);
