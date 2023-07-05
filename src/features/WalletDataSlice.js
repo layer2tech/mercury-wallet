@@ -1404,7 +1404,7 @@ export const callDoSwap = createAsyncThunk(
   "DoSwap",
   async (action, thunkAPI) => {
     const excluded_txids = thunkAPI.getState().walletData.excluded_txids;
-    return wallet.do_swap(action.shared_key_id);
+    return wallet.do_swap(action.shared_key_id, excluded_txids);
   }
 );
 export const callResumeSwap = createAsyncThunk(
