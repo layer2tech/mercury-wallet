@@ -1379,8 +1379,10 @@ export const callTransferSender = createAsyncThunk(
 export const callTransferReceiver = createAsyncThunk(
   "TransferReceiver",
   async (action, thunkAPI) => {
+    const excluded_txids = thunkAPI.getState().walletData.excluded_txids;
     return wallet.transfer_receiver(
-      decodeMessage(action, wallet.config.network)
+      decodeMessage(action, wallet.config.network),
+      excluded_txids
     );
   }
 );

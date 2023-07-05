@@ -285,7 +285,8 @@ export const getTransferMsg4 = async (
   req_confirmations: number,
   block_height: number | null,
   value: number | null,
-  statechain_data: StateChainDataAPI | null
+  statechain_data: StateChainDataAPI | null,
+  excluded_txids: string[] = []
 ): Promise<TransferMsg4> => {
   log.debug("getTransferMsg4...");
   // Backup tx verification
@@ -324,9 +325,8 @@ export const getTransferMsg4 = async (
     throw new Error("Backup tx invalid input.");
   // check if backup tx is present in excluded txids list
   const backup_txid = `${tx_backup_hash}:${tx_backup_vout}`;
-  const excluded_txids = (store.getState() as any).walletData.excluded_txids;
   if (excluded_txids.includes(backup_txid)) {
-    throw new Error("Transaction excluded from swap.");
+    throw new Error("Transaction excluded from swap, Exiting swap.");
   }
 
   // 3. Verify the input signature is valid
@@ -462,7 +462,8 @@ export const transferReceiver = async (
   req_confirmations: number,
   block_height: number | null,
   value: number | null,
-  transfer_msg_4: TransferMsg4 | null
+  transfer_msg_4: TransferMsg4 | null,
+  excluded_txids: string[] = []
 ): Promise<TransferFinalizeData> => {
   log.debug("transferReceiver...");
   // Get statechain data (will Err if statechain not yet finalized)
@@ -540,7 +541,8 @@ export const transferReceiver = async (
       req_confirmations,
       block_height,
       value,
-      statechain_data
+      statechain_data,
+      excluded_txids
     );
   }
 

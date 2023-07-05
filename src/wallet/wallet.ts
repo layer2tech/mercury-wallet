@@ -2868,7 +2868,8 @@ export class Wallet {
   // Args: transfer_messager retuned from sender's TransferSender
   // Return: New wallet coin data
   async transfer_receiver(
-    transfer_msg3: TransferMsg3
+    transfer_msg3: TransferMsg3,
+    excluded_txids: string[] = []
   ): Promise<TransferFinalizeData> {
     let walletcoins = this.statecoins.getCoins(transfer_msg3.statechain_id);
 
@@ -2898,7 +2899,8 @@ export class Wallet {
       this.config.required_confirmations,
       this.block_height,
       null,
-      null
+      null,
+      excluded_txids
     );
 
     // Finalize protocol run by generating new shared key and updating wallet.
