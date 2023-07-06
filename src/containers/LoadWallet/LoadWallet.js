@@ -11,6 +11,7 @@ import {
   initActivityLogItems,
   loadWalletFromMemory,
   walletLoadConnection,
+  startLightningLDK,
 } from "../../features/WalletDataSlice";
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
