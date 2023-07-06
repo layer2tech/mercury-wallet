@@ -187,6 +187,17 @@ function getSwap(
   return swap;
 }
 
+function getSwapWithExcludedTxids(
+  wallet,
+  statecoin,
+  excluded_txids,
+  pkd = proof_key_der,
+  new_pkd = proof_key_der_new
+) {
+  let swap = new Swap(wallet, statecoin, pkd, new_pkd, false, excluded_txids);
+  return swap;
+}
+
 const transferReceiverGet = (path, params, statecoin) => {
   if (path === GET_ROUTE.STATECHAIN) {
     return SWAP_STATECHAIN_INFO_AFTER_TRANSFER;
@@ -1316,7 +1327,49 @@ describe("Swap phase 4", function () {
     );
   });
 
-  test("swapPhase4 test 22 - invalid statecoin status in swapPhase4PollSwap", async () => {
+  test("swapPhase4 test 22 - await transferReceiver, Transaction excluded from swap, Exiting swap", async () => {
+    let wallet = await getWallet();
+    let statecoin = get_statecoin_in();
+    let swap = getSwapWithExcludedTxids(wallet, statecoin, ['794610eff71928df4d6814843945dbe51d8d11cdbcbeb11eb1c42e8199298494:0']);
+    const step_filter = (step) => {
+      return step.subPhase === "transferReceiver";
+    };
+    let steps = swapPhase4Steps(swap).filter(step_filter);
+    let tm3 = cloneDeep(mock_http_client.TRANSFER_MSG3);
+    tm3.statechain_id = statecoin.swap_info.swap_token.statechain_ids[0];
+    const tm3_const = tm3;
+    swap.statecoin.swap_transfer_msg_3_receiver = tm3_const;
+    swap.statecoin.swap_transfer_msg = tm3;
+    swap.setSwapSteps(steps);
+    let commitment_data = {
+      commitment:
+        "7aef2a9771923a485161095ae2314b2a374d223ec1ff67f7602398b3118b445d",
+      nonce: [
+        118, 94, 232, 150, 99, 240, 44, 21, 13, 91, 170, 84, 58, 234, 242, 220,
+        184, 197, 137, 219, 179, 125, 111, 165, 233, 100, 228, 21, 79, 170, 3,
+        238,
+      ],
+    };
+    swap.statecoin.swap_batch_data = commitment_data;
+    http_mock.get = jest.fn((path, params) => {
+      if (path === GET_ROUTE.STATECHAIN) {
+        let sci = cloneDeep(SWAP_STATECHAIN_INFO_AFTER_TRANSFER);
+        return sci;
+      }
+      return transferReceiverGet(path, params, statecoin);
+    });
+
+    http_mock.post = jest.fn((path, params) => {
+      return transferReceiverPost(path, params, statecoin);
+    });
+
+    checkRetryMessage(
+      await swap.doNext(),
+      `transferReceiver: Transaction excluded from swap, Exiting swap. - batch transfer status: statecoin c93ad45a-00b9-449c-a804-aab5530efc90 waiting for completion of batch transfer in swap ID ${statecoin.swap_id.id}`
+    );
+  });
+
+  test("swapPhase4 test 23 - invalid statecoin status in swapPhase4PollSwap", async () => {
     let wallet = await getWallet();
     let statecoin = get_statecoin_in();
     get_statecoin_after_transfer_receiver(statecoin);

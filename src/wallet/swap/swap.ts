@@ -757,7 +757,8 @@ export default class Swap {
       req_confirmations,
       block_height,
       value,
-      null
+      null,
+      this.excluded_txids
     );
     typeforce(types.TransferMsg4, transfer_msg_4);
     log.debug("finished do_get_transfer_msg_4");
