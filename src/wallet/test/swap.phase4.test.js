@@ -183,7 +183,7 @@ function getSwap(
   pkd = proof_key_der,
   new_pkd = proof_key_der_new
 ) {
-  let swap = new Swap(wallet, statecoin, pkd, new_pkd, false, false);
+  let swap = new Swap(wallet, statecoin, pkd, new_pkd, false);
   return swap;
 }
 
