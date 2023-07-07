@@ -35,13 +35,13 @@ const CreateWalletInfoPage = () => {
       case 0:
         reduxNetworkValue = {
           mode: 0,
-          network: bitcoin.networks["bitcoin"],
+          network: bitcoin.networks["testnet"],
         };
         break;
       case 1:
         reduxNetworkValue = {
           mode: 1,
-          network: bitcoin.networks["testnet"],
+          network: bitcoin.networks["bitcoin"],
         };
         break;
       case 2:
@@ -52,7 +52,7 @@ const CreateWalletInfoPage = () => {
         break;
       default:
         reduxNetworkValue = {
-          mode: 1,
+          mode: 0,
           network: bitcoin.networks["testnet"],
         };
         break;
