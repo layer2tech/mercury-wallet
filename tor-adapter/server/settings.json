@@ -7,12 +7,13 @@
     "state_entity_endpoint": "http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion",
     "swap_conductor_endpoint": "http://ye5bn5bmj4xqfmp7bzppseg6xedz6mvtdvp6lfk4ozf7syoxqkcxi3qd.onion"
   },
+  "electrum_endpoint": "http://ybicgbsolp4dhmfhl7rei2zr3qoc3xq3g2nz3fndb5oldszw22rqpiqd.onion/api",
   "tor_proxy": {
     "ip": "localhost",
     "port": 9060,
     "controlPassword": "",
     "controlPort": 9061
-              },
+  },
   "i2p_proxy": {
     "ip": "localhost",
     "port": 4447,

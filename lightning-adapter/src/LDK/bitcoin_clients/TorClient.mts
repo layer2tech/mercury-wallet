@@ -125,24 +125,33 @@ class TorClient implements BitcoinDaemonClientInterface {
   async getBlockHeader(height: number | string) {
     let currentBlockHash;
     try {
-      console.log("[TorClient.mts]: Get latest block header...............");
-      console.log("[TorClient.mts]: block_height: ", height);
-      console.log(`[TorClient.mts]: ${GET_ROUTE.BLOCKS_TIP_HASH}`);
+      console.log(
+        "[TorClient.mts/getBlockHeader]: Get latest block header..............."
+      );
+      console.log("[TorClient.mts/getBlockHeader]: block_height: ", height);
+      console.log(
+        `[TorClient.mts/getBlockHeader]: ${GET_ROUTE.BLOCKS_TIP_HASH}`
+      );
       let res = await TorClient.get(`${GET_ROUTE.BLOCKS_TIP_HASH}`);
 
       currentBlockHash = res && res.data;
     } catch (e) {
-      console.log("[TorClient.mts]: Error Getting Current Block Hash");
+      console.log(
+        "[TorClient.mts/getBlockHeader]: Error Getting Current Block Hash"
+      );
     }
 
-    console.log("[TorClient.mts]: Get Latest Block Header...");
+    console.log("[TorClient.mts/getBlockHeader]: Get Latest Block Header...");
     let res;
     try {
       res = await TorClient.get(`/electrs/block/${currentBlockHash}/header`);
 
       res = res && res.data;
     } catch (e) {
-      console.log("[TorClient.mts]: Error in getting header: ", e);
+      console.log(
+        "[TorClient.mts/getBlockHeader]: Error in getting header: ",
+        e
+      );
     }
 
     if (res) {
@@ -185,6 +194,7 @@ class TorClient implements BitcoinDaemonClientInterface {
 
   static async get(endpoint: string, timeout_ms = TIMEOUT) {
     const url = HOST + ":" + PORT + "/" + endpoint;
+    console.log("[TorClient.mts/get]: URL IS:", url);
     const config = {
       method: "get",
       url: url,
@@ -203,20 +213,20 @@ class TorClient implements BitcoinDaemonClientInterface {
 }
 
 export const GET_ROUTE = {
-  PING: "/electrs/ping",
+  PING: "electrs/ping",
   //latestBlockHeader "/Electrs/block/:hash/header",
-  BLOCK: "/electrs/block",
-  BLOCKS_TIP_HASH: "/electrs/blocks/tip/hash",
+  BLOCK: "electrs/block",
+  BLOCKS_TIP_HASH: "electrs/blocks/tip/hash",
   HEADER: "header",
-  BLOCKS_TIP_HEIGHT: "/electrs/blocks/tip/height",
+  BLOCKS_TIP_HEIGHT: "electrs/blocks/tip/height",
   //getTransaction /tx/:txid
-  TX: "/electrs/tx",
+  TX: "electrs/tx",
   //getScriptHashListUnspent /scripthash/:hash/utxo
-  SCRIPTHASH: "/electrs/scripthash",
+  SCRIPTHASH: "electrs/scripthash",
   UTXO: "utxo",
   //getFeeEstimates
-  FEE_ESTIMATES: "/electrs/fee-estimates",
-  UTXO_SPENT: "/electrs/tx/:txid/outspend/:vout",
+  FEE_ESTIMATES: "electrs/fee-estimates",
+  UTXO_SPENT: "electrs/tx/:txid/outspend/:vout",
 };
 Object.freeze(GET_ROUTE);
 
