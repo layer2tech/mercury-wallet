@@ -228,12 +228,25 @@ export const transferSender = async (
 
   // Mark funds as spent in wallet if this isn't a batch transfer
   if (!is_batch) {
-    await wallet.setStateCoinSpent(
-      statecoin.shared_key_id,
-      ACTION.TRANSFER,
-      transfer_msg3,
-      true
-    );
+    await wallet.setStateCoinSending(statecoin.shared_key_id);
+
+    let shared_key_id;
+
+    const intervalId = setInterval(async () => {
+      shared_key_id = await getOwner(http_client, transfer_msg3.statechain_id);
+
+      if (transfer_msg3.shared_key_id !== shared_key_id) {
+        clearInterval(intervalId);
+        
+        await wallet.setStateCoinSpent(
+          statecoin.shared_key_id,
+          ACTION.TRANSFER,
+          transfer_msg3,
+          true
+        );
+        
+      }
+    }, 10000);
   }
 
   return transfer_msg3;

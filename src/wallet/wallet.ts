@@ -2055,6 +2055,10 @@ export class Wallet {
     }
   }
 
+  setStateCoinSending(shared_key_id: string) {
+    this.statecoins.setCoinSending(shared_key_id);
+  }
+
   setStateCoinAutoSwap(shared_key_id: string) {
     this.statecoins.setAutoSwap(shared_key_id);
   }
@@ -2814,7 +2818,7 @@ export class Wallet {
               statecoin.getTXIdAndOut() +
               " waiting in swap pool. Remove from pool to transfer."
           );
-        if (statecoin.status !== STATECOIN_STATUS.AVAILABLE)
+        if (statecoin.status !== STATECOIN_STATUS.AVAILABLE && statecoin.status !== STATECOIN_STATUS.SENDING)
           throw Error(
             "Coin " + statecoin.getTXIdAndOut() + " not available for Transfer."
           );
