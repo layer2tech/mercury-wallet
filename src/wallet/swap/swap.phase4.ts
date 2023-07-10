@@ -2,10 +2,11 @@
 'use strict';
 import { SwapStep, SWAP_STATUS } from "./swap_utils";
 import { STATECOIN_STATUS } from "..";
-import Swap from "./swap"
+import Swap from "./swap";
 
 
 export function swapPhase4(swap: Swap): SwapStep[] {
+
   return [
     // Step 14
     new SwapStep( 

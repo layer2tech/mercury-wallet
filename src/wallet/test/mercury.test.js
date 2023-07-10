@@ -24,6 +24,7 @@ import {
 } from "./test_data.js";
 import * as MOCK_CLIENT from "../mocks/mock_wasm";
 import * as MOCK_SERVER from "../mocks/mock_http_client";
+import { Transaction } from "bitcoinjs-lib";
 
 let bitcoin = require("bitcoinjs-lib");
 let cloneDeep = require("lodash.clonedeep");
@@ -613,6 +614,50 @@ describe("StateChain Entity", function () {
         )
       ).rejects.toThrowError(
         "Backup tx not sent to addr derived from receivers proof key. Expected proof key 028a9b66d0d2c6ef7ff44a103d44d4e9222b1fa2fd34cd5de29a54875c552abd41, got 0209c0ac5eaa010d1c964209260c17f4793cd1bb967a0d715bad190dc8fae89cad. Transfer not made to this wallet."
+      );
+    });
+    
+    test("Transaction excluded from swap", async function () {
+      http_mock.get = jest
+        .fn()
+        .mockReset()
+        .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER)
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.FEE_INFO))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO));
+
+      http_mock.post = jest
+        .fn()
+        .mockReset()
+        .mockReturnValueOnce(MOCK_SERVER.TRANSFER_PUBKEY)
+        .mockReturnValueOnce(MOCK_SERVER.TRANSFER_RECEIVER)
+        //POST.TRANSFER_UPDATE_MSG;
+        .mockReturnValueOnce(true);
+
+      let transfer_msg3 = cloneDeep(MOCK_SERVER.TRANSFER_MSG3);
+      let se_rec_addr_bip32 = bitcoin.ECPair.fromPrivateKey(
+        Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER_AFTER_TRANSFER.__D)
+      );
+
+      let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
+      const tx_backup_hash = tx_backup.ins[0].hash.reverse().toString("hex");
+      const tx_backup_vout = tx_backup.ins[0].index;
+
+      await expect(
+        transferReceiver(
+          http_mock,
+          electrum_mock,
+          network,
+          transfer_msg3,
+          se_rec_addr_bip32,
+          null,
+          null,
+          null,
+          null,
+          null,
+          [`${tx_backup_hash}:${tx_backup_vout}`]
+        )
+      ).rejects.toThrowError(
+        "Transaction excluded from swap, Exiting swap."
       );
     });
   });

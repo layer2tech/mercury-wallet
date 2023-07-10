@@ -2518,7 +2518,7 @@ export class Wallet {
 
   // Perform do_swap
   // Args: shared_key_id of coin to swap.
-  async do_swap(shared_key_id: string): Promise<StateCoin | null> {
+  async do_swap(shared_key_id: string, excluded_txids: string[] = []): Promise<StateCoin | null> {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
     if (statecoin.backup_status === BACKUP_STATUS.MISSING)
@@ -2564,9 +2564,9 @@ export class Wallet {
         swapSemaphore.release();
       }
 
-      return await this.resume_swap(statecoin, false);
+      return await this.resume_swap(statecoin, false, excluded_txids);
     } else {
-      return await this.resume_swap(statecoin, true);
+      return await this.resume_swap(statecoin, true, excluded_txids);
     }
   }
 
@@ -2574,7 +2574,8 @@ export class Wallet {
   // Args: shared_key_id of coin to swap.
   async resume_swap(
     statecoin: StateCoin,
-    resume: boolean = true
+    resume: boolean = true,
+    excluded_txids: string[] = []
   ): Promise<StateCoin | null> {
     log.info("Swapping coin: " + statecoin.shared_key_id);
 
@@ -2610,7 +2611,8 @@ export class Wallet {
         statecoin,
         proof_key_der,
         new_proof_key_der,
-        resume
+        resume,
+        excluded_txids
       );
       new_statecoin = await swap.do_swap_poll();
     } catch (e: any) {
@@ -2868,7 +2870,8 @@ export class Wallet {
   // Args: transfer_messager retuned from sender's TransferSender
   // Return: New wallet coin data
   async transfer_receiver(
-    transfer_msg3: TransferMsg3
+    transfer_msg3: TransferMsg3,
+    excluded_txids: string[] = []
   ): Promise<TransferFinalizeData> {
     let walletcoins = this.statecoins.getCoins(transfer_msg3.statechain_id);
 
@@ -2898,7 +2901,8 @@ export class Wallet {
       this.config.required_confirmations,
       this.block_height,
       null,
-      null
+      null,
+      excluded_txids
     );
 
     // Finalize protocol run by generating new shared key and updating wallet.

@@ -145,6 +145,7 @@ const initialState = {
     msg: "",
   },
   channel_events: [],
+  excluded_txids: []
 };
 
 // Check if a wallet is loaded in memory
@@ -1378,8 +1379,10 @@ export const callTransferSender = createAsyncThunk(
 export const callTransferReceiver = createAsyncThunk(
   "TransferReceiver",
   async (action, thunkAPI) => {
+    const excluded_txids = thunkAPI.getState().walletData.excluded_txids;
     return wallet.transfer_receiver(
-      decodeMessage(action, wallet.config.network)
+      decodeMessage(action, wallet.config.network),
+      excluded_txids
     );
   }
 );
@@ -1400,7 +1403,8 @@ export const callDoAutoSwap = createAsyncThunk(
 export const callDoSwap = createAsyncThunk(
   "DoSwap",
   async (action, thunkAPI) => {
-    return wallet.do_swap(action.shared_key_id);
+    const excluded_txids = thunkAPI.getState().walletData.excluded_txids;
+    return wallet.do_swap(action.shared_key_id, excluded_txids);
   }
 );
 export const callResumeSwap = createAsyncThunk(
@@ -1883,6 +1887,12 @@ const WalletSlice = createSlice({
         },
       };
     },
+    setExcludedTxids(state, action) {
+      return {
+        ...state,
+        excluded_txids: action.payload,
+      };
+    }
   },
   extraReducers: {
     // Pass rejects through to error_dialogue for display to user.
@@ -2083,6 +2093,7 @@ export const {
   setShowInvoicePopup,
   setSuccessMessage,
   setSuccessMessageSeen,
+  setExcludedTxids
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 
