@@ -525,7 +525,6 @@ describe("StateChain Entity", function () {
       wasm_mock.Sign.second_message = jest.fn(() => MOCK_CLIENT.SIGN_SECOND);
 
       let rec_se_addr_attempt_1 = statecoin.proof_key;
-      console.log(rec_se_addr_attempt_1)
 
       let transfer_msg3_attempt_1 = await transferSender(
         http_mock,
@@ -582,8 +581,6 @@ describe("StateChain Entity", function () {
       wasm_mock.Sign.second_message = jest.fn(() => MOCK_CLIENT.SIGN_SECOND);
 
       let rec_se_addr_attempt_2 = "030e85597f3fa68b157d2219875eaab050d599d98ca39018aafd18e96c3f9fccde";
-
-      console.log(rec_se_addr_attempt_2)
 
       let transfer_msg3_attempt_2 = await transferSender(
         http_mock,
