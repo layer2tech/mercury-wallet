@@ -3,7 +3,7 @@ import settings from "../../images/settings.png";
 
 import React, { useState, useEffect } from "react";
 import { Link, withRouter, Redirect } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import icon2 from "../../images/icon2.png";
 import info from "../../images/info.png";
 
@@ -33,6 +33,8 @@ import {
   getNetworkType,
   callIsTestnet,
   callGetNetwork,
+  setError,
+  setExcludedTxids
 } from "../../features/WalletDataSlice";
 
 import Loading from "../../components/Loading/Loading";
@@ -50,6 +52,8 @@ const SettingsPage = (props) => {
   } catch (error) {
     console.warn("Can not get config", error);
   }
+
+  const { excluded_txids } = useSelector((state) => state.walletData);
 
   const [notifications, setNotification] = useState(config.notifications);
   const [singleSwapMode, setSingleSwapMode] = useState(config.singleSwapMode);
@@ -70,6 +74,7 @@ const SettingsPage = (props) => {
   const [showSeed, setShowSeed] = useState(false);
   const [checkLoading, setCheckLoading] = useState(false);
   const [networkType, setNetworkType] = useState(getNetworkType())
+  const [txidsToExclude, setTxidsToExclude] = useState(excluded_txids.join('\n'));
 
   useEffect(() => {
     if (
@@ -112,6 +117,10 @@ const SettingsPage = (props) => {
       [evt.target.name]: evt.target.value,
     });
   };
+
+  const onTxidsToExcludeChange = (evt) => {
+    setTxidsToExclude(evt.target.value);
+  }
   //const decreaseMinAnonSet = (e) => { minAnonSet>3 ? (setMinAnonSet(minAnonSet-1)):(e.preventDefault()) };
   //const increaseMinAnonSet = (e) => { minAnonSet>=10?(e.preventDefault()):(setMinAnonSet(minAnonSet+1))};
 
@@ -120,8 +129,25 @@ const SettingsPage = (props) => {
     return <Redirect to="/" />;
   }
 
+  const isTxidValid = (txid) => {
+    const pattern = /^[A-Fa-f0-9]{64}:\d+$/;
+    return pattern.test(txid);
+  }
+
   // buttons
   const saveButtonOnClick = () => {
+    if (txidsToExclude.trim() === '') {
+      dispatch(setExcludedTxids([]));
+    } else {
+      const txids = txidsToExclude.trim().split(/[\s,]+/);
+      for (let i = 0; i < txids.length; i++) {
+        if (!isTxidValid(txids[i])) {
+          dispatch(setError({ msg: "Invalid txid: " + txids[i] }))
+          return;
+        }
+      }
+      dispatch(setExcludedTxids(txids));
+    }
     callUpdateConfig({
       state_entity_endpoint: stateEntityAddr,
       swap_conductor_endpoint: swapAddr,
@@ -488,6 +514,21 @@ const SettingsPage = (props) => {
                       <span>{callDeriveXpub()}</span>
                     </div>
                   </CopiedButton>
+                </div>
+              </div>
+              <div className="exclude-list-container">
+                <h2>TXs to exclude during swap</h2>
+                <div className="inputs-item">
+                  <textarea
+                    id="exclude-list-txids"
+                    type="text"
+                    name="TxIDs"
+                    value={txidsToExclude}
+                    onChange={onTxidsToExcludeChange}
+                  />
+                  <label className="control-label" htmlFor="exclude-list-txids">
+                    TxID:vout
+                  </label>
                 </div>
               </div>
             </div>

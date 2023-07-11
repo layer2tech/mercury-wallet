@@ -296,7 +296,8 @@ export const getTransferMsg4 = async (
   req_confirmations: number,
   block_height: number | null,
   value: number | null,
-  statechain_data: StateChainDataAPI | null
+  statechain_data: StateChainDataAPI | null,
+  excluded_txids: string[] = []
 ): Promise<TransferMsg4> => {
   log.debug("getTransferMsg4...");
   // Backup tx verification
@@ -324,13 +325,21 @@ export const getTransferMsg4 = async (
       `Backup tx invalid amount. Expected ${statechain_data.amount}, got ${backup_tx_amount}`
     );
   // 2. Verify the input matches the specified outpoint
+  const tx_backup_hash = tx_backup.ins[0].hash.reverse().toString("hex");
+  const tx_backup_vout = tx_backup.ins[0].index;
   if (
-    tx_backup.ins[0].hash.reverse().toString("hex") !==
+    tx_backup_hash !==
     statechain_data.utxo.txid
   )
     throw new Error("Backup tx invalid input.");
-  if (tx_backup.ins[0].index !== statechain_data.utxo.vout)
+  if (tx_backup_vout !== statechain_data.utxo.vout)
     throw new Error("Backup tx invalid input.");
+  // check if backup tx is present in excluded txids list
+  const backup_txid = `${tx_backup_hash}:${tx_backup_vout}`;
+  if (excluded_txids.includes(backup_txid)) {
+    throw new Error("Transaction excluded from swap, Exiting swap.");
+  }
+
   // 3. Verify the input signature is valid
   tx_backup.ins[0].hash = tx_backup.ins[0].hash.reverse();
   let pk = tx_backup.ins[0].witness[1].toString("hex");
@@ -464,7 +473,8 @@ export const transferReceiver = async (
   req_confirmations: number,
   block_height: number | null,
   value: number | null,
-  transfer_msg_4: TransferMsg4 | null
+  transfer_msg_4: TransferMsg4 | null,
+  excluded_txids: string[] = []
 ): Promise<TransferFinalizeData> => {
   log.debug("transferReceiver...");
   // Get statechain data (will Err if statechain not yet finalized)
@@ -542,7 +552,8 @@ export const transferReceiver = async (
       req_confirmations,
       block_height,
       value,
-      statechain_data
+      statechain_data,
+      excluded_txids
     );
   }
 
