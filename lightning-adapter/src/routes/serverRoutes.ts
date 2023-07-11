@@ -29,6 +29,19 @@ const createAllFolders = (walletName: string) => {
   }
 };
 
+router.get("/status", async function (req, res) {
+  // tells us if the LDK is on or off
+  try {
+    if (LDKClientFactory.isInitialized()) {
+      res.status(200).json({ status: "on" });
+    } else {
+      res.status(200).json({ status: "off" });
+    }
+  } catch (e) {
+    res.status(500).json({ status: "failed" });
+  }
+});
+
 router.post("/startLDK", async function (req, res) {
   // initialize an LDK with the network set
   const { wallet_name, network } = req.body;

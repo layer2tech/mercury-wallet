@@ -8,6 +8,7 @@ import {
   setError,
   callGetUnspentStatecoins,
   setWalletLoaded,
+  setWallet,
   initActivityLogItems,
   loadWalletFromMemory,
   walletLoadConnection,
@@ -82,8 +83,7 @@ const LoadWalletPage = (props) => {
           passwordEntered
         );
 
-        await startLightningLDK(wallet);
-
+        dispatch(setWallet({ wallet: wallet }));
         history.push("/home");
         dispatch(setWalletLoaded({ loaded: true }));
 
@@ -100,8 +100,7 @@ const LoadWalletPage = (props) => {
           passwordEntered
         );
 
-        await startLightningLDK(wallet);
-
+        dispatch(setWallet({ wallet: wallet }));
         history.push("/home");
         dispatch(setWalletLoaded({ loaded: true }));
 

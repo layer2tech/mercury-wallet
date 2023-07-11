@@ -100,6 +100,8 @@ const DEFAULT_STATE_COIN_DETAILS = {
 
 const initialState = {
   network: 0, // default to testnet
+  currentWallet: undefined,
+  lightningLoaded: false,
   walletMode: WALLET_MODE.STATECHAIN,
   notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
@@ -300,31 +302,50 @@ export async function loadWalletFromMemory(name, password) {
 
 export async function startLightningLDK(wallet) {
   if (wallet === undefined) return;
-  // firstly close the LDK if its open
-  await LDKClient.get("/closeLDK", {});
 
-  // Open the LDK based off what network the wallet is
-  let networkPostArg = "";
-  if (wallet.config.network.bech32 === "tb") {
-    networkPostArg = "test";
-  } else if (wallet.config.network.bech32 === "bc") {
-    networkPostArg = "prod";
-  } else if (wallet.config.network.bech32 === "bcrt") {
-    networkPostArg = "dev";
+  let retryCount = 0;
+  const maxRetries = 5;
+  const retryDelay = 5000; // 5 seconds
+
+  while (retryCount < maxRetries) {
+    try {
+      // Firstly, close the LDK if it's open
+      await LDKClient.get("/closeLDK", {});
+
+      // Open the LDK based on the network of the wallet
+      let networkPostArg = "";
+      if (wallet.config.network.bech32 === "tb") {
+        networkPostArg = "test";
+      } else if (wallet.config.network.bech32 === "bc") {
+        networkPostArg = "prod";
+      } else if (wallet.config.network.bech32 === "bcrt") {
+        networkPostArg = "dev";
+      }
+      let payload = { network: networkPostArg };
+      console.log("sending payload to startLDK:", payload);
+      log.info("Trying to start LDK with arguments: " + payload);
+      await LDKClient.post("/startLDK", payload);
+
+      // Call the function once immediately
+      await connectToPeers(wallet);
+
+      // Regularly reconnect to peers every 60 seconds
+      // setInterval(connectToPeers, 60000);
+
+      // Set the node ID
+      wallet.nodeId = await LDKClient.get(LIGHTNING_GET_ROUTE.NODE_ID, {});
+
+      // If we reach this point without throwing an error, break the loop
+      break;
+    } catch (error) {
+      console.error("Error occurred during LDK startup:", error);
+      retryCount++;
+      if (retryCount < maxRetries) {
+        console.log("Retrying in " + retryDelay / 1000 + " seconds...");
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
+      }
+    }
   }
-  let payload = { network: networkPostArg };
-  console.log("sending payload to startLDK:", payload);
-  log.info("Trying to start LDK with arguments" + payload);
-  await LDKClient.post("/startLDK", payload);
-
-  // Call the function once immediately
-  await connectToPeers(wallet);
-
-  // Regularly reconnect to peers every 60 seconds
-  //setInterval(connectToPeers, 60000);
-
-  // set the node ID
-  wallet.nodeId = await LDKClient.get(LIGHTNING_GET_ROUTE.NODE_ID, {});
 }
 
 export async function connectToPeers(wallet) {
@@ -1848,10 +1869,22 @@ const WalletSlice = createSlice({
         showDetails: DEFAULT_STATE_COIN_DETAILS,
       };
     },
+    setWallet(state, action) {
+      return {
+        ...state,
+        currentWallet: action.payload.wallet,
+      };
+    },
     setWalletLoaded(state, action) {
       return {
         ...state,
         walletLoaded: action.payload.loaded,
+      };
+    },
+    setLightningLoaded(state, action) {
+      return {
+        ...state,
+        lightningLoaded: action.payload.loaded,
       };
     },
     callClearSave(state) {
@@ -2079,6 +2112,8 @@ export const {
   setShowDetails,
   setShowDetailsSeen,
   setWalletLoaded,
+  setLightningLoaded,
+  setWallet,
   addCoinToSwapRecords,
   removeCoinFromSwapRecords,
   removeAllCoinsFromSwapRecords,

@@ -8,6 +8,8 @@ import {
   callGetFeeInfo,
   callGetConfig,
   setWalletLoaded,
+  setLightningLoaded,
+  startLightningLDK,
 } from "../../features/WalletDataSlice";
 import {
   PanelControl,
@@ -29,10 +31,23 @@ log = new WrappedLogger();
 const HomePage = (props) => {
   const dispatch = useDispatch();
   let fee_info = useSelector((state) => state.walletData).fee_info;
-  
-  useEffect(()=>{
-    dispatch(setWalletLoaded({ loaded: true }))
-  },[])
+  let wallet = useSelector((state) => state.walletData).currentWallet;
+  const isLightningLoaded = useSelector(
+    (state) => state.walletData.lightningLoaded
+  );
+
+  useEffect(() => {
+    dispatch(setWalletLoaded({ loaded: true }));
+
+    const initializeWallet = async () => {
+      dispatch(setLightningLoaded({ loaded: true }));
+      await startLightningLDK(wallet);
+    };
+
+    if (!isLightningLoaded) {
+      initializeWallet();
+    }
+  }, [dispatch, wallet, isLightningLoaded]);
 
   // Check if wallet is loaded. Avoids crash when Electrorn real-time updates in developer mode.
   if (!isWalletLoaded()) {
@@ -65,7 +80,10 @@ const HomePage = (props) => {
   return (
     <div className="container home-page">
       <PanelControl />
-      <PanelConnectivity online={props.online} networkType = {props.networkType} />
+      <PanelConnectivity
+        online={props.online}
+        networkType={props.networkType}
+      />
       <PanelCoinsActivity />
       {current_config?.tutorials && <Tutorial />}
     </div>

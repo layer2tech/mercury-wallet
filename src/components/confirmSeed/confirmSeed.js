@@ -9,6 +9,7 @@ import {
   callGetUnspentStatecoins,
   setWalletLoaded,
   startLightningLDK,
+  setWallet,
 } from "../../features/WalletDataSlice";
 import "./confirmSeed.css";
 import { LDKClient } from "../../wallet/ldk_client";
@@ -132,8 +133,7 @@ const ConfirmSeed = (props) => {
         undefined,
         network.network
       );
-
-      startLightningLDK(wallet);
+      dispatch(setWallet({ wallet: wallet }));
     } catch (e) {
       event.preventDefault();
       dispatch(setError({ msg: e.message }));

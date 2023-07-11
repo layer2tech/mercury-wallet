@@ -14,6 +14,7 @@ import {
   stopWallet,
   setWalletLoaded,
   getNetworkType,
+  setLightningLoaded,
 } from "../../features/WalletDataSlice";
 import "./header.css";
 import TorCircuit from "./TorInfo/TorCircuit";
@@ -38,6 +39,7 @@ const Header = (props) => {
 
     // call close LDK
     await LDKClient.get("/closeLDK", {});
+    dispatch(setLightningLoaded({ loaded: false }));
   };
 
   useEffect(async () => {
