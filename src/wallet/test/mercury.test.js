@@ -620,6 +620,50 @@ describe("StateChain Entity", function () {
       expect(
         bitcoin.address.fromOutputScript(tx_backup_attempt_1.outs[0].script, network)
       ).not.toBe(bitcoin.address.fromOutputScript(tx_backup_attempt_2.outs[0].script, network));
+
+      http_mock.get = jest
+        .fn()
+        .mockReset()
+        .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER)
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.FEE_INFO))
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO));
+
+      http_mock.post = jest
+        .fn()
+        .mockReset()
+        .mockReturnValueOnce(MOCK_SERVER.TRANSFER_PUBKEY)
+        .mockReturnValueOnce(MOCK_SERVER.TRANSFER_RECEIVER)
+        //POST.TRANSFER_UPDATE_MSG;
+        .mockReturnValueOnce(true);
+
+      let rec_se_addr_bip32_attempt_1 = bitcoin.ECPair.fromPrivateKey(
+        Buffer.from(MOCK_SERVER.STATECOIN_PROOF_KEY_DER_AFTER_TRANSFER.__D)
+      );
+      
+      // Should throw an error
+      let finalize_data_attempt_1 = await transferReceiver(
+        http_mock,
+        electrum_mock,
+        network,
+        transfer_msg3_attempt_1,
+        rec_se_addr_bip32_attempt_1,
+        null
+      );
+
+      let rec_se_addr_bip32_attempt_2 = bitcoin.ECPair.fromPrivateKey(
+        Buffer.from(rec_se_addr_attempt_2)
+      );
+
+      // Should not throw any error
+      let finalize_data_attempt_2 = await transferReceiver(
+        http_mock,
+        electrum_mock,
+        network,
+        transfer_msg3_attempt_2,
+        rec_se_addr_bip32_attempt_2,
+        null
+      );
+      
     });
   });
 
