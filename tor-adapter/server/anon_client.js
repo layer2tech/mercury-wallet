@@ -100,13 +100,22 @@ class AnonClient {
     console.log("network -----------------", network);
 
     if (start_cmd.slice(-18).includes("win") && network === "i2pd") {
-      // Check if windows to add arg differently
-      terminalPasswordArg = [`%hash-password=${this.config.controlPassword}`];
+      // Check if Windows to add arg differently
+      if (process.platform === "win32") {
+        terminalPasswordArg = [`%hash-password=${this.config.controlPassword}`];
+      } else {
+        terminalPasswordArg = [
+          `--hash-password`,
+          `${this.config.controlPassword}`,
+        ];
+      }
     } else {
-      terminalPasswordArg = [
-        `--hash-password`,
-        `${this.config.controlPassword}`,
-      ];
+      if (process.platform !== "win32") {
+        terminalPasswordArg = [
+          `--hash-password`,
+          `${this.config.controlPassword}`,
+        ];
+      }
     }
 
     //terminalPasswordArg = [`--hash-password`, `${this.config.controlPassword}`];
@@ -134,7 +143,7 @@ class AnonClient {
             stdout = stdout.split("\n")[1];
           }
           let hashedPassword = stdout.replace(/\n*$/, "");
-  
+
           // Sets config when launching network
           if (network === "tor") {
             netConfigArgs = [
@@ -160,7 +169,7 @@ class AnonClient {
               `--datadir=${this.dataPath}`,
             ];
           }
-  
+
           /* *
            * ToDo: Check Hash password is in proper use for Tor
            *  - the hash in netConfigArgs has been removed
@@ -183,7 +192,7 @@ class AnonClient {
             const message = `${network} stdout: ` + data.toString();
             console.log(message);
           });
-  
+
           this.process.stderr.on("data", function (data) {
             const message = `${network} stderr: ` + data.toString();
             console.error(message);
@@ -194,8 +203,7 @@ class AnonClient {
           );
         }
       );
-    }
-    catch (e) {
+    } catch (e) {
       throw e;
     }
   }
