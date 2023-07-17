@@ -144,6 +144,12 @@ export const STATECHAIN_INFOS = [{
   amount: 1000,
   chain: [{ data: "03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984478", next_state: null }],
   locktime: 1000
+},
+{
+  utxo: 'f62c9b74e276843a5d0fe0d3d0f3d73c06e118b822772c024aac3d840fbad3ce:0',
+  amount: 500000,
+  chain: [{ data: '03ffac3c7d7db6308816e8589af9d6e9e724eb0ca81a44456fef02c79cba984477', next_state: null }],
+  locktime: 1990441
 }
 ]
 

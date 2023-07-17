@@ -624,9 +624,9 @@ describe("StateChain Entity", function () {
       http_mock.get = jest
         .fn()
         .mockReset()
-        .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFO_AFTER_TRANSFER)
+        .mockReturnValueOnce(MOCK_SERVER.STATECHAIN_INFOS[2])
         .mockReturnValueOnce(cloneDeep(MOCK_SERVER.FEE_INFO))
-        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFO));
+        .mockReturnValueOnce(cloneDeep(MOCK_SERVER.STATECHAIN_INFOS[2]));
 
       http_mock.post = jest
         .fn()
