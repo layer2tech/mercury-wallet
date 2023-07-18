@@ -12,6 +12,7 @@ import {
   setNetwork,
 } from "../../features/WalletDataSlice";
 import { useDispatch } from "react-redux";
+import * as bitcoin from "bitcoinjs-lib";
 
 const CreateWalletInfoPage = () => {
   const dispatch = useDispatch();
@@ -29,8 +30,36 @@ const CreateWalletInfoPage = () => {
   }, []);
 
   const selectNetwork = (mode) => {
+    let reduxNetworkValue = {};
+    switch (mode) {
+      case 0:
+        reduxNetworkValue = {
+          mode: 0,
+          network: bitcoin.networks["testnet"],
+        };
+        break;
+      case 1:
+        reduxNetworkValue = {
+          mode: 1,
+          network: bitcoin.networks["bitcoin"],
+        };
+        break;
+      case 2:
+        reduxNetworkValue = {
+          mode: 2,
+          network: bitcoin.networks["regtest"],
+        };
+        break;
+      default:
+        reduxNetworkValue = {
+          mode: 0,
+          network: bitcoin.networks["testnet"],
+        };
+        break;
+    }
+
     setNetworkChecked(mode);
-    dispatch(setNetwork(mode)); // save to redux state
+    dispatch(setNetwork(reduxNetworkValue)); // save to redux state
     console.log("changing to network:", mode);
   };
 

@@ -74,6 +74,7 @@ export const callSetArgsHasTestnet = async (value) => {
 
 export const callGetNetwork = () => {
   if (isWalletLoaded()) {
+    console.log("callGetNetwork->", wallet.config.network);
     return wallet.config.network;
   }
 };
@@ -99,6 +100,8 @@ const DEFAULT_STATE_COIN_DETAILS = {
 
 const initialState = {
   network: 0, // default to testnet
+  currentWallet: undefined,
+  lightningLoaded: false,
   walletMode: WALLET_MODE.STATECHAIN,
   notification_dialogue: [],
   error_dialogue: { seen: true, msg: "" },
@@ -122,8 +125,8 @@ const initialState = {
   ping_conductor_ms: null,
   ping_electrum_ms: null,
   token_init_status: "idle",
-  token: {token: { id: "", btc: "", ln: "" }, values: []},
-  token_verify: {spent: true, confirmed: false, status: "idle"},
+  token: { token: { id: "", btc: "", ln: "" }, values: [] },
+  token_verify: { spent: true, confirmed: false, status: "idle" },
   ping_lightning_ms: null,
   ping_swap: null,
   ping_server: null,
@@ -291,34 +294,97 @@ export function initActivityLogItems() {
 
 export async function loadWalletFromMemory(name, password) {
   wallet = await Wallet.load(name, password, testing_mode);
-
-  // Lightning - loading
-  /*
-  let network = wallet.config.network;
-  console.log("network loaded from memory was:", network);
-  let networkPostValue = "";
-  if (network.bech32 === "bc") {
-    networkPostValue = "prod";
-  } else if (network.bech32 === "tb") {
-    networkPostValue = "test";
-  } else {
-    networkPostValue = "dev";
-  }
-  console.log("networkPostValue is:", networkPostValue);
-  LDKClient.get(LIGHTNING_GET_ROUTE.PEER_LIST).then((res) => {
-    console.log("result returned was:", res);
-    res.status === 200
-      ? LDKClient.post(LIGHTNING_POST_ROUTE.START_LDK, {
-          network: networkPostValue,
-        })
-      : null;
-  });*/
-
   wallet.resetSwapStates();
   wallet.disableAutoSwaps();
-
   log.info("Wallet " + name + " loaded from memory. ");
+
   return wallet;
+}
+
+export async function startLightningLDK(wallet) {
+  if (wallet === undefined) return;
+
+  let retryCount = 0;
+  const maxRetries = 5;
+  const retryDelay = 5000; // 5 seconds
+
+  while (retryCount < maxRetries) {
+    try {
+      // Firstly, close the LDK if it's open
+      await LDKClient.get("/closeLDK", {});
+
+      // Open the LDK based on the network of the wallet
+      let networkPostArg = "";
+      if (wallet.config.network.bech32 === "tb") {
+        networkPostArg = "test";
+      } else if (wallet.config.network.bech32 === "bc") {
+        networkPostArg = "prod";
+      } else if (wallet.config.network.bech32 === "bcrt") {
+        networkPostArg = "dev";
+      }
+      let payload = { network: networkPostArg };
+      console.log("sending payload to startLDK:", payload);
+      log.info("Trying to start LDK with arguments: " + payload);
+      await LDKClient.post("/startLDK", payload);
+
+      // Call the function once immediately
+      await connectToPeers(wallet);
+
+      // Regularly reconnect to peers every 60 seconds
+      // setInterval(connectToPeers, 60000);
+
+      // Set the node ID
+      wallet.nodeId = await LDKClient.get(LIGHTNING_GET_ROUTE.NODE_ID, {});
+
+      // If we reach this point without throwing an error, break the loop
+      break;
+    } catch (error) {
+      console.error("Error occurred during LDK startup:", error);
+      retryCount++;
+      if (retryCount < maxRetries) {
+        console.log("Retrying in " + retryDelay / 1000 + " seconds...");
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
+      }
+    }
+  }
+}
+
+export async function connectToPeers(wallet) {
+  if (wallet === undefined) return;
+  let channelsInfo = await wallet.lightning_client.getChannels(wallet.name);
+  let peerInfo = await wallet.lightning_client.getPeers();
+
+  let mergedInfo = channelsInfo.map((channel) => {
+    let peer = peerInfo.find((peer) => peer.id === channel.peer_id);
+    return {
+      ...channel,
+      host: peer.host,
+      port: peer.port,
+      pubkey: peer.pubkey,
+    };
+  });
+  // Connect to peer on an interval loop
+  console.log("reconnecting to peer...");
+  console.log("mergedInfo.length:", mergedInfo.length);
+  // for every channel reconnect to its peer
+  for (var i = 0; i < mergedInfo.length; i++) {
+    let pubkey = mergedInfo[i].pubkey;
+    let host = mergedInfo[i].host;
+    let port = mergedInfo[i].port;
+
+    console.log("try to connect to pubkey->", pubkey);
+
+    try {
+      await LDKClient.post("/peer/connectToPeer", {
+        pubkey,
+        host,
+        port,
+      });
+    } catch (error) {
+      console.log(error.response.data); // "Error connecting to peer"
+    }
+  }
+  wallet.saveChannels(channelsInfo);
 }
 
 // Load wallet from store
@@ -415,16 +481,6 @@ export async function walletFromMnemonic(
   gap_start = undefined,
   network = undefined
 ) {
-  if (network === 0) {
-    network = bitcoin.networks["testnet"];
-  } else if (network === 1) {
-    network = bitcoin.networks["bitcoin"];
-  } else if (network === 2) {
-    network = bitcoin.networks["regtest"];
-  } else {
-    network = bitcoin.networks["bitcoin"];
-  }
-
   dispatch(setProgressComplete({ msg: "" }));
   wallet = Wallet.fromMnemonic(
     name,
@@ -478,6 +534,8 @@ export async function walletFromMnemonic(
     dispatch(setProgressComplete({ msg: "" }));
     router.push("/home");
   });
+
+  return wallet;
 }
 // Try to decrypt wallet. Throw if invalid password
 export const checkWalletPassword = async (password) => {
@@ -567,30 +625,30 @@ export const callGetBlockHeight = () => {
   if (isWalletLoaded()) {
     return wallet.getBlockHeight();
   }
-}
+};
 
 export const callAddToken = (token, values) => {
-  if(isWalletLoaded()){
-    return wallet.addToken(token, values)
+  if (isWalletLoaded()) {
+    return wallet.addToken(token, values);
   }
-}
+};
 export const callGetToken = () => {
-  if(isWalletLoaded()){
-    return wallet.getToken()
+  if (isWalletLoaded()) {
+    return wallet.getToken();
   }
-}
+};
 export const callGetTokens = () => {
-  if(isWalletLoaded()){
-    return wallet.getTokens().reverse()
+  if (isWalletLoaded()) {
+    return wallet.getTokens().reverse();
   }
-}
+};
 
 export const callDeleteToken = (token_id) => {
   if (isWalletLoaded()) {
     log.info("Removing token " + token_id + " from wallet.");
     wallet.deleteToken(token_id);
   }
-}
+};
 
 export const callSpendToken = (token_id, amount) => {
   if (isWalletLoaded()) {
@@ -1055,6 +1113,7 @@ export const callCreateChannel = async (amount, peer_node) => {
   if (isWalletLoaded()) {
     return await wallet.createChannel(amount, peer_node);
   }
+  return null;
 };
 
 export const callSendPayment = async (invoiceStr, dispatch) => {
@@ -1324,35 +1383,33 @@ export const callResetConnectionData = (dispatch) => {
 // Redux 'thunks' allow async access to Wallet. Errors thrown are recorded in
 // state.error_dialogue, which can then be displayed in GUI or handled elsewhere.
 
-
 export const callTokenInit = createAsyncThunk(
-  'tokenInit',
+  "tokenInit",
   async (action, thunkAPI) => {
-    return wallet.tokenInit(action.amount)
+    return wallet.tokenInit(action.amount);
   }
-)
+);
 
 export const callTokenVerify = createAsyncThunk(
-  'tokenVerify',
+  "tokenVerify",
   async (action, thunkAPI) => {
-    return wallet.tokenVerify(action.token_id)
+    return wallet.tokenVerify(action.token_id);
   }
-)
+);
 
 export const callDepositInit = createAsyncThunk(
   "depositInit",
   async (value, thunkAPI) => {
     return wallet.depositInit(value);
   }
-)
+);
 
 export const callTokenDepositInit = createAsyncThunk(
-  'tokenDepositInit',
+  "tokenDepositInit",
   async (action, thunkAPI) => {
-    return wallet.tokenDepositInit(action.value, action.token)
+    return wallet.tokenDepositInit(action.value, action.token);
   }
-)
-
+);
 
 export const callDepositConfirm = createAsyncThunk(
   "depositConfirm",
@@ -1575,23 +1632,23 @@ const WalletSlice = createSlice({
       };
     },
     //update Token
-    setToken(state, action){
+    setToken(state, action) {
       return {
         ...state,
-        token: action.payload
-      }
+        token: action.payload,
+      };
     },
-    resetToken(state, action){
+    resetToken(state, action) {
       return {
         ...state,
-        token: {token: { id: "", btc: "", ln: "" }, values: []}
-      }
+        token: { token: { id: "", btc: "", ln: "" }, values: [] },
+      };
     },
-    setTokenVerifyIdle(state, action){
+    setTokenVerifyIdle(state, action) {
       return {
         ...state,
-        token_verify: {...state.token_verify, status: "idle"}
-      }
+        token_verify: { ...state.token_verify, status: "idle" },
+      };
     },
     // Update ping_swap
     updatePingSwap(state, action) {
@@ -1816,10 +1873,22 @@ const WalletSlice = createSlice({
         showDetails: DEFAULT_STATE_COIN_DETAILS,
       };
     },
+    setWallet(state, action) {
+      return {
+        ...state,
+        currentWallet: action.payload.wallet,
+      };
+    },
     setWalletLoaded(state, action) {
       return {
         ...state,
         walletLoaded: action.payload.loaded,
+      };
+    },
+    setLightningLoaded(state, action) {
+      return {
+        ...state,
+        lightningLoaded: action.payload.loaded,
       };
     },
     callClearSave(state) {
@@ -1903,39 +1972,39 @@ const WalletSlice = createSlice({
       };
     },
     [callTokenInit.pending]: (state) => {
-      state.token_init_status = "pending"
+      state.token_init_status = "pending";
     },
     [callTokenInit.fulfilled]: (state, action) => {
       let res = action.payload;
 
-      state.token_init_status = "fulfilled"
+      state.token_init_status = "fulfilled";
 
-      callAddToken({token: res, values: action.meta.arg.values});
-
+      callAddToken({ token: res, values: action.meta.arg.values });
     },
     [callTokenInit.rejected]: (state, action) => {
-      
-      state.token_init_status = "rejected"
-
+      state.token_init_status = "rejected";
     },
     [callTokenVerify.pending]: (state) => {
-      state.token_verify.status = "pending"
+      state.token_verify.status = "pending";
     },
     [callTokenVerify.fulfilled]: (state, action) => {
       let res = action.payload;
-      
+
       state.token_verify.status = "fulfilled";
       state.token_verify.spent = res.spent;
       state.token_verify.confirmed = res.confirmed;
     },
     [callTokenVerify.rejected]: (state, action) => {
-      state.token_verify.status = "rejected"
+      state.token_verify.status = "rejected";
     },
     [callTokenDepositInit.pending]: (state) => {
       state.depositLoading = true;
     },
     [callTokenDepositInit.rejected]: (state, action) => {
-      state.error_dialogue = { seen: false, msg: action.error.name + ": " + action.error.message }
+      state.error_dialogue = {
+        seen: false,
+        msg: action.error.name + ": " + action.error.message,
+      };
     },
     [callTokenDepositInit.fulfilled]: (state) => {
       state.depositLoading = false;
@@ -2053,6 +2122,8 @@ export const {
   setShowDetails,
   setShowDetailsSeen,
   setWalletLoaded,
+  setLightningLoaded,
+  setWallet,
   addCoinToSwapRecords,
   removeCoinFromSwapRecords,
   removeAllCoinsFromSwapRecords,
@@ -2063,8 +2134,8 @@ export const {
   setNotificationSeen,
   updateBalanceInfo,
   callClearSave,
-  setToken, 
-  resetToken, 
+  setToken,
+  resetToken,
   setTokenVerifyIdle,
   updateFilter,
   updateWalletMode,

@@ -125,11 +125,15 @@ export const pingElectrum = async (
 };
 
 export const pingLightning = async () => {
+  console.log("ping lightning called");
   var startTime = performance.now();
   try {
-    await LDKClient.get(LIGHTNING_GET_ROUTE.DEAULT_PEER_LIST, {});
-  } catch(e) {
-    console.log("Error", e);
+    let res = await LDKClient.get(LIGHTNING_GET_ROUTE.STATUS, {});
+    if (res.status !== "on") {
+      return null;
+    }
+  } catch (e) {
+    console.log("Error occured in pingLightning", e);
     return null;
   }
   var endTime = performance.now();
@@ -233,17 +237,15 @@ export const getRoot = async (http_client: HttpClient | MockHttpClient) => {
   return root;
 };
 
-export function delay_s (s: number) {
+export function delay_s(s: number) {
   return delay(s * 1000);
-};
+}
 
 export function delay(ms: number) {
   return new Promise(function (resolve: any, reject: any) {
     setTimeout(resolve, ms);
   });
-};
-
-
+}
 
 export const getSmtProof = async (
   http_client: HttpClient | MockHttpClient,

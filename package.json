@@ -26,7 +26,7 @@
     }
   },
   "repository": "github:layer2tech/mercury-wallet",
-  "version": "v0.8.14",
+  "version": "v0.9.0",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "public/electron.js",
@@ -34,7 +34,7 @@
     "e2e": "testcafe \"electron:.\" \"./src/e2e/**/*.js\"",
     "install-local": "yarn add file:./tor-adapter",
     "start": "node ./setup && react-app-rewired start --trace-deprecation",
-    "adapters-browser": "concurrently \"node ./setup && react-app-rewired start\" \" npm run tor-adapter\" ",
+    "adapters-browser": "concurrently \"node ./setup && react-app-rewired start\" \" npm run tor-adapter\" \" npm run lightning-adapter\"",
     "prebuild": "DATE=`date` && YEAR=${DATE##* } && MERC_YEAR=`jq .build.copyright package.json | awk '{print $3}'` && if [ $YEAR -ne $MERC_YEAR ]; then echo 'package.json prebuild - expected .build.copyright year' $YEAR ', got' $MERC_YEAR '- please update year' && return 1; fi",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test --maxWorkers 2",
@@ -53,7 +53,8 @@
     "app-macos-local-test": "yarn install-local && npm install --force && yarn build && DEBUG=electron-builder electron-builder -m -p never",
     "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
     "cypress": "cypress open",
-    "tor-adapter": "cd tor-adapter && npm start"
+    "tor-adapter": "cd tor-adapter && npm start",
+    "lightning-adapter": "cd lightning-adapter && npm start"
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
@@ -62,7 +63,7 @@
     "@types/jest": "^27.5.2",
     "@types/uuid": "^8.3.0",
     "concurrently": "^5.3.0",
-    "cypress": "^11.0.0",
+    "cypress": "^12.16.0",
     "electron": "^17.1.2",
     "electron-build-env": "^0.2.0",
     "electron-builder": "^22.9.1",
@@ -134,7 +135,7 @@
     "levenary": "^1.1.1",
     "limiter": "^2.1.0",
     "lodash.clonedeep": "^4.5.0",
-    "mercury-wallet-lightning-adapter": "https://github.com/layer2tech/mercury-node.git",
+    "mercury-wallet-lightning-adapter": "file:./lightning-adapter",
     "mercury-wallet-tor-adapter": "file:./tor-adapter",
     "moment": "^2.29.1",
     "msgpack-lite": "^0.1.26",

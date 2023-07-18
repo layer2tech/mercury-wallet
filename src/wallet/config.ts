@@ -21,57 +21,69 @@ export const TestingWithJest = () => {
 };
 
 export const defaultWalletConfig = async () => {
-  
   let networkType = getNetworkType();
-  networkType = (networkType === undefined) ? "tor" : networkType.toLowerCase();
-  if (callGetNetwork() === bitcoin.networks.testnet) {
+  networkType = networkType === undefined ? "tor" : networkType.toLowerCase();
+  let loadedWalletNetwork = callGetNetwork();
+
+  if (loadedWalletNetwork === bitcoin.networks.testnet) {
     console.log("use testnet network settings");
     return {
       network: bitcoin.networks.testnet,
       notifications: false,
       singleSwapMode: false,
       tutorials: false,
-      state_entity_endpoint: NETWORK_CONFIG[networkType].testnet_state_entity_endpoint,
-      swap_conductor_endpoint: NETWORK_CONFIG[networkType].testnet_swap_conductor_endpoint,
-      block_explorer_endpoint: NETWORK_CONFIG[networkType].testnet_block_explorer_endpoint,
+      state_entity_endpoint:
+        NETWORK_CONFIG[networkType].testnet_state_entity_endpoint,
+      swap_conductor_endpoint:
+        NETWORK_CONFIG[networkType].testnet_swap_conductor_endpoint,
+      block_explorer_endpoint:
+        NETWORK_CONFIG[networkType].testnet_block_explorer_endpoint,
       electrum_config: process.env.TESTNET_ELECTRUM_CONFIG
-      ? process.env.TESTNET_ELECTRUM_CONFIG
-      :NETWORK_CONFIG[networkType].testnet_electrum_config,
-      tor_proxy:  NETWORK_CONFIG[networkType].proxy,
+        ? process.env.TESTNET_ELECTRUM_CONFIG
+        : NETWORK_CONFIG[networkType].testnet_electrum_config,
+      tor_proxy: NETWORK_CONFIG[networkType].proxy,
       min_anon_set: "",
     };
-  } else if (callGetNetwork() === bitcoin.networks.regtest) {
+  } else if (loadedWalletNetwork === bitcoin.networks.regtest) {
     console.log("use regtest network settings");
     return {
       network: bitcoin.networks.regtest,
       notifications: false,
       singleSwapMode: false,
       tutorials: false,
-      state_entity_endpoint: NETWORK_CONFIG[networkType].regtest_state_entity_endpoint,
-      swap_conductor_endpoint: NETWORK_CONFIG[networkType].regtest_swap_conductor_endpoint,
-      block_explorer_endpoint: NETWORK_CONFIG[networkType].regtest_block_explorer_endpoint,
+      state_entity_endpoint:
+        NETWORK_CONFIG[networkType].regtest_state_entity_endpoint,
+      swap_conductor_endpoint:
+        NETWORK_CONFIG[networkType].regtest_swap_conductor_endpoint,
+      block_explorer_endpoint:
+        NETWORK_CONFIG[networkType].regtest_block_explorer_endpoint,
       electrum_config: process.env.REGTEST_ELECTRUM_CONFIG
-      ? process.env.REGTEST_ELECTRUM_CONFIG
-      :NETWORK_CONFIG[networkType].regtest_electrum_config,
-      tor_proxy:  NETWORK_CONFIG[networkType].proxy,
+        ? process.env.REGTEST_ELECTRUM_CONFIG
+        : NETWORK_CONFIG[networkType].regtest_electrum_config,
+      tor_proxy: NETWORK_CONFIG[networkType].proxy,
       min_anon_set: "",
     };
-  } else {
+  } else if (loadedWalletNetwork === bitcoin.networks.bitcoin) {
     console.log("use mainnet network settings");
     return {
       network: bitcoin.networks.bitcoin,
       notifications: false,
       singleSwapMode: false,
       tutorials: false,
-      state_entity_endpoint: NETWORK_CONFIG[networkType].mainnet_state_entity_endpoint,
-      swap_conductor_endpoint: NETWORK_CONFIG[networkType].mainnet_swap_conductor_endpoint,
-      block_explorer_endpoint: NETWORK_CONFIG[networkType].mainnet_block_explorer_endpoint,
+      state_entity_endpoint:
+        NETWORK_CONFIG[networkType].mainnet_state_entity_endpoint,
+      swap_conductor_endpoint:
+        NETWORK_CONFIG[networkType].mainnet_swap_conductor_endpoint,
+      block_explorer_endpoint:
+        NETWORK_CONFIG[networkType].mainnet_block_explorer_endpoint,
       electrum_config: process.env.MAINNET_ELECTRUM_CONFIG
-      ? process.env.MAINNET_ELECTRUM_CONFIG
-      :NETWORK_CONFIG[networkType].mainnet_electrum_config,
+        ? process.env.MAINNET_ELECTRUM_CONFIG
+        : NETWORK_CONFIG[networkType].mainnet_electrum_config,
       tor_proxy: NETWORK_CONFIG[networkType].proxy,
       min_anon_set: "",
     };
+  } else {
+    console.log("no network was loaded, is wallet loaded?");
   }
 };
 
@@ -118,26 +130,41 @@ export class Config {
 
     //Mainnet or testnet urls
     if (this.network === bitcoin.networks.bitcoin) {
-      this.state_entity_endpoint = NETWORK_CONFIG[networkTypeLcase].mainnet_state_entity_endpoint;
+      this.state_entity_endpoint =
+        NETWORK_CONFIG[networkTypeLcase].mainnet_state_entity_endpoint;
       this.swap_conductor_endpoint =
         NETWORK_CONFIG[networkTypeLcase].mainnet_swap_conductor_endpoint;
-      this.electrum_config = NETWORK_CONFIG[networkTypeLcase].mainnet_electrum_config;
+      this.electrum_config =
+        NETWORK_CONFIG[networkTypeLcase].mainnet_electrum_config;
       this.block_explorer_endpoint =
         NETWORK_CONFIG[networkTypeLcase].mainnet_block_explorer_endpoint;
     } else if (this.network === bitcoin.networks.regtest) {
-      this.state_entity_endpoint = NETWORK_CONFIG[networkTypeLcase].regtest_state_entity_endpoint;
+      this.state_entity_endpoint =
+        NETWORK_CONFIG[networkTypeLcase].regtest_state_entity_endpoint;
       this.swap_conductor_endpoint =
         NETWORK_CONFIG[networkTypeLcase].regtest_swap_conductor_endpoint;
-      this.electrum_config = NETWORK_CONFIG[networkTypeLcase].regtest_electrum_config;
+      this.electrum_config =
+        NETWORK_CONFIG[networkTypeLcase].regtest_electrum_config;
       this.block_explorer_endpoint =
         NETWORK_CONFIG[networkTypeLcase].regtest_block_explorer_endpoint;
-    } else {
-      this.state_entity_endpoint = NETWORK_CONFIG[networkTypeLcase].testnet_state_entity_endpoint;
+    } else if (this.network === bitcoin.networks.testnet) {
+      this.state_entity_endpoint =
+        NETWORK_CONFIG[networkTypeLcase].testnet_state_entity_endpoint;
       this.swap_conductor_endpoint =
         NETWORK_CONFIG[networkTypeLcase].testnet_swap_conductor_endpoint;
-      this.electrum_config = NETWORK_CONFIG[networkTypeLcase].testnet_electrum_config;
+      this.electrum_config =
+        NETWORK_CONFIG[networkTypeLcase].testnet_electrum_config;
       this.block_explorer_endpoint =
         NETWORK_CONFIG[networkTypeLcase].testnet_block_explorer_endpoint;
+    } else {
+      this.state_entity_endpoint =
+        NETWORK_CONFIG[networkTypeLcase].mainnet_state_entity_endpoint;
+      this.swap_conductor_endpoint =
+        NETWORK_CONFIG[networkTypeLcase].mainnet_swap_conductor_endpoint;
+      this.electrum_config =
+        NETWORK_CONFIG[networkTypeLcase].mainnet_electrum_config;
+      this.block_explorer_endpoint =
+        NETWORK_CONFIG[networkTypeLcase].mainnet_block_explorer_endpoint;
     }
 
     this.tor_proxy = NETWORK_CONFIG[networkTypeLcase].proxy;
@@ -148,9 +175,8 @@ export class Config {
     this.tutorials = false;
     this.swaplimit = 1440;
 
-    this.update(require('../settings.json'));
-    if(TestingWithJest()){
-
+    this.update(require("../settings.json"));
+    if (TestingWithJest()) {
       this.update(defaultWalletConfig());
     }
   }
@@ -165,10 +191,10 @@ export class Config {
     Object.entries(config_changes).forEach((item) => {
       switch (item[0]) {
         case "date_format":
-          this.date_format = item[1]
+          this.date_format = item[1];
           break;
         case "network":
-          this.network = item[1]
+          this.network = item[1];
           break;
         case "testing_mode":
           this.testing_mode = item[1];

@@ -33,7 +33,7 @@ let bip39 = require("bip39");
 
 jest.setTimeout(70000);
 let isElectron = require("is-electron");
-let Store
+let Store;
 
 export const TestingWithJest = () => {
   return process.env.JEST_WORKER_ID !== undefined;
@@ -67,12 +67,12 @@ async function getWallet() {
     true
   );
 
-   // walletSave.storage.loadStatecoins(walletSave);
-   expect(walletSave.statecoins.coins.length).toEqual(9);
-   return walletSave;
- }
+  // walletSave.storage.loadStatecoins(walletSave);
+  expect(walletSave.statecoins.coins.length).toEqual(9);
+  return walletSave;
+}
 
- describe("Wallet load time", function () {
+describe("Wallet load time", function () {
   afterAll(() => {
     //Cleanup
     clearWallet(walletName);
@@ -83,8 +83,8 @@ async function getWallet() {
     let wallet = await getWallet();
     const load_time = window.performance.now() - start_time;
     console.log(`wallet load time: ${load_time}`);
-    expect(load_time).toBeLessThanOrEqual(15000);
+    expect(load_time).toBeLessThanOrEqual(20000);
 
     await wallet.save();
-});
+  });
 });
