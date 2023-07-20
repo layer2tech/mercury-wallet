@@ -141,26 +141,30 @@ export const pingLightning = async () => {
 };
 
 export const getFeeInfo = async (http_client: HttpClient | MockHttpClient) => {
-  let fee_info = await http_client.get(GET_ROUTE.FEES, {});
-  typeforce(types.FeeInfo, fee_info);
+  try {
+    let fee_info = await http_client.get(GET_ROUTE.FEES, {});
+    typeforce(types.FeeInfo, fee_info);
 
-  if (fee_info && show_alerts) {
-    if (semverLt(version, fee_info.wallet_version)) {
-      alert(
-        "Wallet version (" +
-          version +
-          ") incompatible with minimum server requirement (" +
-          fee_info.wallet_version +
-          "). Please upgrade to the latest version."
-      );
+    if (fee_info && show_alerts) {
+      if (semverLt(version, fee_info.wallet_version)) {
+        alert(
+          "Wallet version (" +
+            version +
+            ") incompatible with minimum server requirement (" +
+            fee_info.wallet_version +
+            "). Please upgrade to the latest version."
+        );
+      }
+      if (fee_info.wallet_message.length > 1) {
+        alert("Server alert: " + fee_info.wallet_message);
+      }
+      show_alerts = false;
     }
-    if (fee_info.wallet_message.length > 1) {
-      alert("Server alert: " + fee_info.wallet_message);
-    }
-    show_alerts = false;
+
+    return fee_info;
+  } catch (e) {
+    console.log("Unable to get the fee from the server");
   }
-
-  return fee_info;
 };
 
 export const getCoinsInfo = async (

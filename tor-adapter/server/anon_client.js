@@ -100,22 +100,13 @@ class AnonClient {
     console.log("network -----------------", network);
 
     if (start_cmd.slice(-18).includes("win") && network === "i2pd") {
-      // Check if Windows to add arg differently
-      if (process.platform === "win32") {
-        terminalPasswordArg = [`%hash-password=${this.config.controlPassword}`];
-      } else {
-        terminalPasswordArg = [
-          `--hash-password`,
-          `${this.config.controlPassword}`,
-        ];
-      }
+      // Check if windows to add arg differently
+      terminalPasswordArg = [`%hash-password=${this.config.controlPassword}`];
     } else {
-      if (process.platform !== "win32") {
-        terminalPasswordArg = [
-          `--hash-password`,
-          `${this.config.controlPassword}`,
-        ];
-      }
+      terminalPasswordArg = [
+        `--hash-password`,
+        `${this.config.controlPassword}`,
+      ];
     }
 
     //terminalPasswordArg = [`--hash-password`, `${this.config.controlPassword}`];
