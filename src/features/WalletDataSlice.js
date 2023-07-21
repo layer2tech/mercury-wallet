@@ -1343,6 +1343,14 @@ export const UpdateSpeedInfo = async (
       if (server_ping_ms_new !== ping_server_ms) {
         dispatch(setPingServerMs(server_ping_ms_new));
         setServerConnected(server_ping_ms_new != null);
+        callGetFeeInfo()
+          .then((fee_info) => {
+            console.log(fee_info)
+            dispatch(updateFeeInfo(fee_info));
+          })
+          .catch((err) => {
+            handleErrors(err);
+          });
       }
     } catch (err) {
       server_ping_ms_new = null;
@@ -1626,6 +1634,7 @@ const WalletSlice = createSlice({
     },
     // Update fee_info
     updateFeeInfo(state, action) {
+      console.log(action.payload)
       return {
         ...state,
         fee_info: action.payload,
