@@ -1345,7 +1345,6 @@ export const UpdateSpeedInfo = async (
         setServerConnected(server_ping_ms_new != null);
         callGetFeeInfo()
           .then((fee_info) => {
-            console.log(fee_info)
             dispatch(updateFeeInfo(fee_info));
           })
           .catch((err) => {
@@ -1634,7 +1633,6 @@ const WalletSlice = createSlice({
     },
     // Update fee_info
     updateFeeInfo(state, action) {
-      console.log(action.payload)
       return {
         ...state,
         fee_info: action.payload,
