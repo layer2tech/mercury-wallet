@@ -353,7 +353,7 @@ const DepositPage = () => {
         setValueSelectionAddr={setValueSelectionAddr}
       />):(null)}
     {step === 1 ? (
-      !childError && <button className={`primary-btn blue ${"step-" + step}`} onClick={(e) => onContinueClick(e)}>Continue</button>
+      !childError && <button className={`primary-btn blue ${"step-" + step}`} data-cy="deposit-continue-btn" onClick={(e) => onContinueClick(e)}>Continue</button>
     ) : (
       <div className="stepper-buttons">
         <button className={`primary-btn blue ${"step-" + step}`} onClick={(e) => onContinueClick(e)}>Go Back</button>
@@ -381,7 +381,7 @@ const DepositPage = () => {
           setValueSelectionAddr={setValueSelectionAddr}/>
       )}
       {step === 1 ? (
-        !childError && <button className="primary-btn blue" onClick={() => setStep(2)}>Continue</button>
+        !childError && <button className="primary-btn blue" data-cy="deposit-continue-btn" onClick={() => setStep(2)}>Continue</button>
       ) : (
         <button className="primary-btn blue" onClick={() => setStep(1)}>Go Back</button>
       )}
