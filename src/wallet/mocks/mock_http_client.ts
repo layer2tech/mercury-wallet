@@ -107,8 +107,8 @@ export class MockHttpClient {
 
 export const FEE_INFO = {
   address: "tb1q6xwt00hnwcrtlunvnz8u0xrtdxv5ztx7pj44cp",
-  deposit: 300,
-  withdraw: 0,
+  deposit: 0,
+  withdraw: 50,
   interval: 100,
   initlock: 10000,
   wallet_version: "0.4.66",

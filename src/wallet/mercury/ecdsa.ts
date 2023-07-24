@@ -73,6 +73,8 @@ export const keyGen = async (
   typeforce(types.KeyGenParty1Message2, kg_party_one_second_message.msg);
 
   // client second
+  console.log(kg_party_one_first_message)
+  console.log(kg_party_one_second_message.msg)
   let key_gen_second_message =
     JSON.parse(
       wasm_client.KeyGen.second_message(
@@ -80,6 +82,7 @@ export const keyGen = async (
         JSON.stringify(kg_party_one_second_message.msg)
       )
     );
+  console.log(key_gen_second_message)
   typeforce(types.ClientKeyGenSecondMsg, key_gen_second_message);
 
   // Construct Rust MasterKey struct
