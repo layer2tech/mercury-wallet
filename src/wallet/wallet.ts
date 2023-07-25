@@ -1316,6 +1316,16 @@ export class Wallet {
         if (statecoin.tx_backup === null) {
           this.depositConfirm(statecoin.shared_key_id);
         } else {
+          console.log("statecoin value is:", statecoin.value);
+          console.log(
+            "statecoin initial value was:",
+            statecoin.deposit_init_value
+          );
+          // statecoin is set to confirmed here, but we need to check if the value has changed
+          if (statecoin.value !== statecoin.deposit_init_value) {
+            statecoin.is_deposit_value_equal = false;
+          }
+
           statecoin.setConfirmed();
           this.saveStateCoin(statecoin);
         }
@@ -2434,7 +2444,10 @@ export class Wallet {
 
   // Perform do_swap
   // Args: shared_key_id of coin to swap.
-  async do_swap(shared_key_id: string, excluded_txids: string[] = []): Promise<StateCoin | null> {
+  async do_swap(
+    shared_key_id: string,
+    excluded_txids: string[] = []
+  ): Promise<StateCoin | null> {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
     if (statecoin.backup_status === BACKUP_STATUS.MISSING)

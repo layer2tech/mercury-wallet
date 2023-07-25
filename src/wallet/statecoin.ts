@@ -136,7 +136,6 @@ export class StateCoinList {
         tx_cpfp.locktime = tx_cpfp_any.locktime;
 
         if (tx_cpfp_any.ins.length > 0) {
-
           if (Array.isArray(tx_cpfp_any.ins[0].hash.data)) {
             tx_cpfp.addInput(
               Buffer.from(tx_cpfp_any.ins[0].hash),
@@ -176,9 +175,7 @@ export class StateCoinList {
             );
           } else {
             tx_cpfp.addOutput(
-              Buffer.from(
-                Object.values(tx_cpfp_any.outs[0].script as object)
-              ),
+              Buffer.from(Object.values(tx_cpfp_any.outs[0].script as object)),
               tx_cpfp_any.outs[0].value
             );
           }
@@ -189,7 +186,7 @@ export class StateCoinList {
 
       // reset backup_confirm on restart
       if (item.tx_backup == null && item.backup_confirm) {
-        item.backup_confirm = false
+        item.backup_confirm = false;
       }
 
       if (!replca) statecoinsList.coins.push(Object.assign(coin, item));
@@ -570,7 +567,7 @@ export const BACKUP_STATUS = {
   // MISSING correct backup tx not recovered
   MISSING: "Missing",
   // BELOW_MIN_FEE
-  BELOW_MIN_FEE: "Minimum fee not met"
+  BELOW_MIN_FEE: "Minimum fee not met",
 };
 Object.freeze(BACKUP_STATUS);
 
@@ -630,6 +627,12 @@ export class StateCoin {
   is_new: boolean;
   is_deposited: boolean;
   status: string;
+
+  // true/false if confirmed coin value is equal to the deposit init value
+  deposit_init_value: number = 0;
+  confirmed_value: number = 0;
+  is_deposit_value_equal: boolean;
+  // ------------------------------
 
   // Transfer data
   transfer_msg: TransferMsg3 | null;
@@ -698,6 +701,10 @@ export class StateCoin {
     this.swap_auto = false;
     this.swap_error = null;
     this.swap_transfer_finalized_data = null;
+
+    // member variables that track original value and confirmed value
+    this.deposit_init_value = 0;
+    this.is_deposit_value_equal = false;
   }
 
   static fromJSON(statecoin: StateCoin): StateCoin {
@@ -724,6 +731,7 @@ export class StateCoin {
     this.status = STATECOIN_STATUS.UNCONFIRMED;
   }
   setConfirmed() {
+    console.log("Coin set to confirmed value.");
     this.status = STATECOIN_STATUS.AVAILABLE;
   }
   setAwaitingSwap() {
@@ -780,7 +788,7 @@ export class StateCoin {
   }
   setBackupBelowMinFee() {
     this.backup_status = BACKUP_STATUS.BELOW_MIN_FEE;
-  }  
+  }
 
   getWithdrawalBroadcastTxInfo(id: string): WithdrawalTxBroadcastInfo {
     let found = this.tx_withdraw_broadcast.filter(
@@ -1030,17 +1038,14 @@ export interface ExpiryData {
 }
 
 export interface Token {
-  id: string,
-  btc: string,
-  ln: string
+  id: string;
+  btc: string;
+  ln: string;
 }
 
 export interface TokenData {
-  token: Token,
-  values: number[]
+  token: Token;
+  values: number[];
 }
 
-
-export interface InclusionProofSMT {
-
-}
+export interface InclusionProofSMT {}
