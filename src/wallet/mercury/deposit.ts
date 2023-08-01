@@ -7,55 +7,61 @@
 // 3. Broadcast funding tx and wait for SE verification
 // 4. Verify funding txid and proof key in SM
 
-'use strict';
+"use strict";
 import { keyGen, keyGenToken, PROTOCOL, sign } from "./ecdsa";
-import { getRoot, verifySmtProof, getSmtProof, StateCoin, getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE } from "../";
+import {
+  getRoot,
+  verifySmtProof,
+  getSmtProof,
+  StateCoin,
+  getFeeInfo,
+  HttpClient,
+  MockHttpClient,
+  POST_ROUTE,
+} from "../";
 import { FeeInfo, getStateChain, StateChainDataAPI } from "./info_api";
 import { getSigHash, pubKeyTobtcAddr, txBuilder } from "../util";
 
-import { Network } from 'bitcoinjs-lib';
+import { Network } from "bitcoinjs-lib";
 import { PrepareSignTxMsg } from "./ecdsa";
 import { Token } from "../statecoin";
 import { GET_ROUTE } from "../http_client";
-const Promise = require('bluebird');
-let typeforce = require('typeforce');
+const Promise = require("bluebird");
+let typeforce = require("typeforce");
 
 // Init Token -> return BTC address and LN invoice for X token amount
 export const tokenInit = async (
   http_client: HttpClient | MockHttpClient,
   token_amount: number
 ): Promise<Token> => {
-
   // May need to add proof of work here
 
   let token_amount_str = token_amount.toString();
   let res = await http_client.get(GET_ROUTE.TOKEN_INIT, token_amount_str);
-  
+
   console.log(res);
 
   let token = {
     id: res.token_id,
     btc: res.btc_payment_address,
-    ln: res.lightning_invoice.bolt11
-  }
-  
-  return token
-}
+    ln: res.lightning_invoice.bolt11,
+  };
+
+  return token;
+};
 
 export const tokenVerify = async (
   http_client: HttpClient | MockHttpClient,
   token_id: string
 ) => {
+  console.log("tokenVerify -> token_id: ", token_id);
 
-  console.log(token_id);
+  let verify = await http_client.get(GET_ROUTE.TOKEN_VERIFY, token_id);
 
-  let verify = await http_client.get(GET_ROUTE.TOKEN_VERIFY, token_id)
+  console.log("tokenVerify -> verify: ", verify);
 
-  console.log(verify);
-
-  return verify
-
-}
+  return verify;
+};
 
 export const tokenDepositInit = async (
   http_client: HttpClient | MockHttpClient,
@@ -72,19 +78,27 @@ export const tokenDepositInit = async (
     token_id: token_id,
     amount: amount,
   };
-  
-  let deposit_init_res = await http_client.post(POST_ROUTE.POD_DEPOSIT_INIT, deposit_msg1);
-  let shared_key_id = deposit_init_res.id;
-  typeforce(typeforce.String, shared_key_id)
 
+  let deposit_init_res = await http_client.post(
+    POST_ROUTE.POD_DEPOSIT_INIT,
+    deposit_msg1
+  );
+  let shared_key_id = deposit_init_res.id;
+  typeforce(typeforce.String, shared_key_id);
 
   // 2P-ECDSA with state entity to create a Shared key
-  let statecoin = await keyGenToken(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT );
+  let statecoin = await keyGenToken(
+    http_client,
+    wasm_client,
+    shared_key_id,
+    secret_key,
+    PROTOCOL.DEPOSIT
+  );
 
-  statecoin.is_deposited=true
+  statecoin.is_deposited = true;
 
-  return statecoin
-}
+  return statecoin;
+};
 
 // Deposit Init. Generate shared key with stateChain Entity.
 // Return Shared_key_id, statecoin and address to send funds to.
@@ -97,25 +111,36 @@ export const depositInit = async (
   // Init. session - Receive shared wallet ID
   let deposit_msg1 = {
     auth: "authstr",
-    proof_key: String(proof_key)
+    proof_key: String(proof_key),
   };
 
-  let deposit_init_res = await http_client.post(POST_ROUTE.DEPOSIT_INIT, deposit_msg1);
+  let deposit_init_res = await http_client.post(
+    POST_ROUTE.DEPOSIT_INIT,
+    deposit_msg1
+  );
   let shared_key_id = deposit_init_res.id;
-  typeforce(typeforce.String, shared_key_id)
-
+  typeforce(typeforce.String, shared_key_id);
 
   console.log("start pow");
   // solve VDF challenge
-  let pow_solution = wasm_client.solve_pow_challenge(deposit_init_res.challenge);
+  let pow_solution = wasm_client.solve_pow_challenge(
+    deposit_init_res.challenge
+  );
   console.log(pow_solution);
   console.log("complete pow");
 
   // 2P-ECDSA with state entity to create a Shared key
-  let statecoin = await keyGen(http_client, wasm_client, shared_key_id, secret_key, PROTOCOL.DEPOSIT, pow_solution);
-  statecoin.is_deposited = true
-  return statecoin
-}
+  let statecoin = await keyGen(
+    http_client,
+    wasm_client,
+    shared_key_id,
+    secret_key,
+    PROTOCOL.DEPOSIT,
+    pow_solution
+  );
+  statecoin.is_deposited = true;
+  return statecoin;
+};
 
 // After funds are sent to p_addr sign backup tx and verify SMT.
 // Return statecoin with smt_proot, statechain_id, tx_backup_signed, p_addr.
@@ -123,30 +148,29 @@ export const depositConfirm = async (
   http_client: HttpClient | MockHttpClient,
   wasm_client: any,
   network: Network,
-  statecoin: StateCoin,
+  statecoin: StateCoin
 ): Promise<StateCoin> => {
   // Get state entity fee info
   let fee_info: FeeInfo = await getFeeInfo(http_client);
-  let nSequence = 0xFFFFFFFE;
-  
+  let nSequence = 0xfffffffe;
 
   // Calculate initial locktime
   let init_locktime = statecoin.init_locktime;
   // if previously set (RBF) use initial height
   if (init_locktime == null) {
-    throw Error("depositConfirm - statecoin.init_locktime not set.")
-  } 
+    throw Error("depositConfirm - statecoin.init_locktime not set.");
+  }
 
   let sc_infos: StateChainDataAPI[] = [];
 
   let statechain: StateChainDataAPI = {
     utxo: {
       txid: statecoin.funding_txid,
-      vout: statecoin.funding_vout
+      vout: statecoin.funding_vout,
     },
     amount: statecoin.value,
     chain: [statecoin.statechain_id],
-    locktime: init_locktime
+    locktime: init_locktime,
   };
 
   sc_infos.push(statechain);
@@ -154,11 +178,25 @@ export const depositConfirm = async (
   // Build unsigned backup tx
   let backup_receive_addr = pubKeyTobtcAddr(statecoin.proof_key, network);
 
-  let tx_backup_unsigned = txBuilder(network, sc_infos, backup_receive_addr, fee_info, nSequence, fee_info.backup_fee_rate, init_locktime).buildIncomplete();
+  let tx_backup_unsigned = txBuilder(
+    network,
+    sc_infos,
+    backup_receive_addr,
+    fee_info,
+    nSequence,
+    fee_info.backup_fee_rate,
+    init_locktime
+  ).buildIncomplete();
 
   //co sign funding tx input signatureHash
   let pk = statecoin.getSharedPubKey();
-  let signatureHash = getSigHash(tx_backup_unsigned, 0, pk, statecoin.value, network);
+  let signatureHash = getSigHash(
+    tx_backup_unsigned,
+    0,
+    pk,
+    statecoin.value,
+    network
+  );
 
   // ** Can remove PrepareSignTxMsg and replace with backuptx throughout client and server?
   // Create PrepareSignTxMsg to send funding tx data to receiver
@@ -172,23 +210,37 @@ export const depositConfirm = async (
   };
 
   // construct shared signatures
-  let signature = await sign(http_client, wasm_client, statecoin.shared_key_id, statecoin.shared_key, prepare_sign_msg, signatureHash, PROTOCOL.DEPOSIT);
+  let signature = await sign(
+    http_client,
+    wasm_client,
+    statecoin.shared_key_id,
+    statecoin.shared_key,
+    prepare_sign_msg,
+    signatureHash,
+    PROTOCOL.DEPOSIT
+  );
 
   // set witness data with signature
   let tx_backup_signed = tx_backup_unsigned;
 
-  tx_backup_signed.ins[0].witness = [Buffer.from(signature[0]), Buffer.from(signature[1])];
+  tx_backup_signed.ins[0].witness = [
+    Buffer.from(signature[0]),
+    Buffer.from(signature[1]),
+  ];
 
   prepare_sign_msg.tx_hex = tx_backup_signed.toHex();
 
   // Wait for server confirmation of funding tx and receive new StateChain's id
   let deposit_msg2 = {
     shared_key_id: statecoin.shared_key_id,
-  }
+  };
 
-  let statechain_id = await http_client.post(POST_ROUTE.DEPOSIT_CONFIRM, deposit_msg2);
-  
-  typeforce(typeforce.String, statecoin.shared_key_id)
+  let statechain_id = await http_client.post(
+    POST_ROUTE.DEPOSIT_CONFIRM,
+    deposit_msg2
+  );
+
+  typeforce(typeforce.String, statecoin.shared_key_id);
 
   // Verify proof key inclusion in SE sparse merkle tree
   let root = await getRoot(http_client);
@@ -199,7 +251,7 @@ export const depositConfirm = async (
   statecoin.statechain_id = statechain_id.id;
   statecoin.tx_backup = tx_backup_signed;
   statecoin.interval = fee_info.interval;
-  statecoin.is_deposited = true
+  statecoin.is_deposited = true;
 
-  return statecoin
-}
+  return statecoin;
+};
