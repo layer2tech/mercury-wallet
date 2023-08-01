@@ -148,7 +148,7 @@ const initialState = {
     msg: "",
   },
   channel_events: [],
-  excluded_txids: []
+  excluded_txids: [],
 };
 
 // Check if a wallet is loaded in memory
@@ -1397,9 +1397,15 @@ export const callTokenInit = createAsyncThunk(
   }
 );
 
+export const callTokenVerifyValues = async (token_id) => {
+  return await wallet.tokenVerify(token_id);
+};
+
 export const callTokenVerify = createAsyncThunk(
   "tokenVerify",
   async (action, thunkAPI) => {
+    console.log("calling wallet.tokenVerify()...");
+
     return wallet.tokenVerify(action.token_id);
   }
 );
@@ -1968,7 +1974,7 @@ const WalletSlice = createSlice({
         ...state,
         excluded_txids: action.payload,
       };
-    }
+    },
   },
   extraReducers: {
     // Pass rejects through to error_dialogue for display to user.
@@ -2171,7 +2177,7 @@ export const {
   setShowInvoicePopup,
   setSuccessMessage,
   setSuccessMessageSeen,
-  setExcludedTxids
+  setExcludedTxids,
 } = WalletSlice.actions;
 export default WalletSlice.reducer;
 

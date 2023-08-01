@@ -2020,6 +2020,8 @@ export class Wallet {
 
   async tokenVerify(token_id: string) {
     let verif = await tokenVerify(this.http_client, token_id);
+
+    console.log("wallet.tokenVerify:", verif);
     // Checks verification of last token with ID: token_id
     return verif;
   }
@@ -2434,7 +2436,10 @@ export class Wallet {
 
   // Perform do_swap
   // Args: shared_key_id of coin to swap.
-  async do_swap(shared_key_id: string, excluded_txids: string[] = []): Promise<StateCoin | null> {
+  async do_swap(
+    shared_key_id: string,
+    excluded_txids: string[] = []
+  ): Promise<StateCoin | null> {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
     if (statecoin.backup_status === BACKUP_STATUS.MISSING)
