@@ -8,8 +8,11 @@ import {
   callGetVersion,
   callGetUnspentStatecoins,
   setWalletLoaded,
+  startLightningLDK,
+  setWallet,
 } from "../../features/WalletDataSlice";
 import "./confirmSeed.css";
+import { LDKClient } from "../../wallet/ldk_client";
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
@@ -118,7 +121,7 @@ const ConfirmSeed = (props) => {
 
     // Create wallet and load into Redux state
     try {
-      await walletFromMnemonic(
+      let wallet = await walletFromMnemonic(
         dispatch,
         props.wizardState.wallet_name,
         props.wizardState.wallet_password,
@@ -128,8 +131,9 @@ const ConfirmSeed = (props) => {
         undefined,
         undefined,
         undefined,
-        network
+        network.network
       );
+      dispatch(setWallet({ wallet: wallet }));
     } catch (e) {
       event.preventDefault();
       dispatch(setError({ msg: e.message }));

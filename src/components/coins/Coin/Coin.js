@@ -558,19 +558,16 @@ const Coin = (props) => {
               />
             </button>
           )}
-          {isElectron() &&
-            props.isMainPage &&
-            !props.coin_data.deleting &&
-            props.coin_data.status === "INITIALISED" && (
-              <div className="Body-button expired">
-                <img
-                  className="close"
-                  src={close_img}
-                  alt="arrow"
-                  onClick={(e) => handleDeleteCoin(e)}
-                />
-              </div>
-            )}
+          {isElectron() && props.isMainPage && !props.coin_data.deleting && (
+            <div className="Body-button expired">
+              <img
+                className="close"
+                src={close_img}
+                alt="arrow"
+                onClick={(e) => handleDeleteCoin(e)}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

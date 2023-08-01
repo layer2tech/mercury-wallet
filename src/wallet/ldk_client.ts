@@ -6,6 +6,7 @@ import { handleErrors } from "../error";
 import { Channel, ChannelInfo, ChannelEvents } from "./channel";
 
 export const LIGHTNING_GET_ROUTE = {
+  STATUS: "status",
   PEER_LIST: "peer/peers",
   CHANNEL_LIST: "channel/loadChannels",
   CHANNEL_EVENTS: "channel/loadEvents",

@@ -61,6 +61,7 @@ let execPath = undefined;
 let torrc = undefined;
 let anon_adapter_path = undefined;
 let lightning_adapter_path = undefined;
+let lightning_adapter_directory;
 
 if (isPackaged === true) {
   if (getPlatform() == "linux") {
@@ -93,15 +94,24 @@ if (isPackaged === true) {
     "server",
     "index.js"
   );
-
-  lightning_adapter_path = joinPath(
-    __dirname,
-    "..",
-    "node_modules",
-    "mercury-wallet-lightning-adapter",
-    "src",
-    "server.js"
-  );
+  if (getPlatform() == "darwin") {
+    lightning_adapter_path = joinPath(
+      __dirname,
+      "node_modules",
+      "mercury-wallet-lightning-adapter",
+      "src",
+      "server.js"
+    );
+  } else {
+    lightning_adapter_path = joinPath(
+      __dirname,
+      "..",
+      "node_modules",
+      "mercury-wallet-lightning-adapter",
+      "src",
+      "server.js"
+    );
+  }
 } else {
   resourcesPath = joinPath(rootPath, "resources");
   execPath = joinPath(resourcesPath, getPlatform());
@@ -145,51 +155,7 @@ for (let i = 0; i < process.argv.length; i++) {
 }
 
 let mainWindow = null;
-
 // start lightning adapter service
-function startExpressServer() {
-  let lightning_adapter_directory;
-
-  if (isPackaged === true) {
-    lightning_adapter_directory = joinPath(
-      __dirname,
-      "..",
-      "node_modules",
-      "mercury-wallet-lightning-adapter"
-    );
-  } else {
-    lightning_adapter_directory = joinPath(
-      rootPath,
-      "node_modules",
-      "mercury-wallet-lightning-adapter"
-    );
-  }
-
-  const command = "node";
-  const args = [
-    "--loader",
-    "ts-node/esm",
-    "--experimental-specifier-resolution=node",
-    lightning_adapter_path,
-  ];
-
-  const expressProcess = spawn(command, args, {
-    cwd: lightning_adapter_directory,
-    shell: true,
-    stdio: "ignore",
-  });
-
-  expressProcess.on("error", (err) => {
-    console.log(`Express server error: ${err}`);
-    throw err;
-  });
-
-  expressProcess.on("close", (code) => {
-    console.log(`Express server process exited with code ${code}`);
-  });
-}
-
-startExpressServer();
 
 function createWindow() {
   let windowSpec = {
@@ -292,6 +258,53 @@ function createWindow() {
   }
 }
 
+let expressProcess; // store the spawned process
+
+function startExpressServer() {
+  if (isPackaged === true) {
+    if (getPlatform() == "darwin") {
+      lightning_adapter_directory = joinPath(
+        __dirname,
+        "node_modules",
+        "mercury-wallet-lightning-adapter"
+      );
+    } else {
+      lightning_adapter_directory = joinPath(
+        __dirname,
+        "..",
+        "node_modules",
+        "mercury-wallet-lightning-adapter"
+      );
+    }
+  } else {
+    lightning_adapter_directory = joinPath(
+      rootPath,
+      "node_modules",
+      "mercury-wallet-lightning-adapter"
+    );
+  }
+  const command = "node";
+  const args = [
+    "--loader",
+    "ts-node/esm",
+    "--experimental-specifier-resolution=node",
+    lightning_adapter_path,
+  ];
+  expressProcess = spawn(command, args, {
+    cwd: lightning_adapter_directory,
+    shell: true,
+    stdio: "ignore",
+  });
+  // Add a listener for the `exit` event
+  expressProcess.on("exit", (code) => {
+    if (code !== 0) {
+      // The process exited with an error code, so restart it
+      console.log("Express server crashed, restarting...");
+      startExpressServer();
+    }
+  });
+}
+
 async function getTorAdapter(path) {
   const url = `http://localhost:3001${path}`;
   const config = {
@@ -317,7 +330,10 @@ app.on("ready", () => {
 
   // Clears cookie storage
   // Persisted web store must be wiped for electron in case redux store has changed
-  session.defaultSession.clearStorageData([], data => {})
+  session.defaultSession.clearStorageData([], (data) => {});
+
+  terminate_lightning_adapter();
+  startExpressServer();
 
   terminate_tor_process();
   terminate_mercurywallet_process(null, "tor");
@@ -332,6 +348,7 @@ app.on("window-all-closed", async () => {
   terminate_mercurywallet_process(null, "i2p");
   //TODO: Uncomment
   // terminate_mercurywallet_process(init_lightning_adapter, null);
+  terminate_lightning_adapter();
   app.quit();
 });
 
@@ -380,6 +397,7 @@ app.on("before-quit", async function () {
   terminate_mercurywallet_process(null, "tor");
   //TODO: Uncomment
   // terminate_mercurywallet_process(init_lightning_adapter, null);
+  terminate_lightning_adapter();
 });
 
 app.allowRendererProcessReuse = false;
@@ -491,6 +509,16 @@ const terminate_tor_process = () => {
     );
   }
 };
+
+function terminate_lightning_adapter() {
+  // Check if the expressProcess is running
+  if (expressProcess && !expressProcess.killed) {
+    // Terminate the expressProcess
+    // expressProcess.kill();
+    process.kill(expressProcess);
+    console.log("Express server closed.");
+  }
+}
 
 // Terminate the parent process of any running mercurywallet processes.
 function terminate_mercurywallet_process(init_new, network) {

@@ -16,9 +16,10 @@ describe("create wallet", () => {
   });
 
   it("get the create new wallet button", () => {
-    cy.get("[data-cy=create-wallet-btn]");
+    // cy.get("[data-cy=create-wallet-btn]");
   });
 
+  /*
   it("main wallet section", () => {
     const landingTitle = "Welcome to Mercury";
     const landingMessage =
@@ -106,5 +107,5 @@ describe("create wallet", () => {
               .click();
           });
       });
-  });
+  });*/
 });

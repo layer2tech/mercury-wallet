@@ -24,8 +24,8 @@ if (!isElectron()) {
   process.argv[4] = __dirname + `/${network}`;
   process.argv[5] = __dirname + "/resources/win/Data/Tor/geoip";
   process.argv[6] = __dirname + "/resources/win/Data/Tor/geoip6";
-} else{
-  var network = process.argv[2].includes('tor') ? "tor" : "i2pd";
+} else {
+  var network = process.argv[2].includes("tor") ? "tor" : "i2pd";
 }
 const express = require("express");
 var geoip = require("geoip-country");
@@ -56,7 +56,6 @@ const torrc = process.argv[3];
 let geoIpFile = undefined;
 let geoIpV6File = undefined;
 
-
 if (process.argv.length > 5) {
   geoIpFile = process.argv[5];
 }
@@ -68,14 +67,12 @@ if (process.argv.length > 7) {
   geoIpV6File = process.argv[7];
 }
 
-
 /**
  * • PORT 3001 for Tor
  * • PORT 3002 for I2P
  */
 
 const PORT = network === "tor" ? 3001 : 3002;
-
 
 console.log(`tor cmd: ${start_cmd}`);
 console.log(`torrc: ${torrc}`);
@@ -85,11 +82,9 @@ const dataDir =
     ? path.join(logDataDir, "tor")
     : path.join(logDataDir, "i2p");
 
-
 var Config = new require("./config");
 const config = new Config(network);
 const tpc = config.proxy;
-
 
 // Hidden service indices for hidden service switching
 let i_elect_hs = { i: 0 };
@@ -111,7 +106,6 @@ app.listen(PORT, () => {
   );
   log("info", `${network} data dir` + dataDir);
 });
-
 
 /**
  * Initialising Tor or I2P
@@ -144,30 +138,29 @@ let epsClient = null;
 let electrsLocalClient = null;
 
 log("info", "starting anon network node... ");
-try{
+try {
   anon_client.startNode(start_cmd, torrc, network);
-} catch(e){
-  handle_error(null, e)
+} catch (e) {
+  handle_error(null, e);
 }
 
 log("info", "finished starting anon network node.");
 
-
 async function handle_error(res, err) {
-
-  if(typeof(err?.message) === 'string' && err.message.includes('connect ECONNREFUSED')){
-    try{
-      // restart network node if down 
+  if (
+    typeof err?.message === "string" &&
+    err.message.includes("connect ECONNREFUSED")
+  ) {
+    try {
+      // restart network node if down
       await anon_client.startNode(start_cmd, torrc, network);
-    } catch(e){
-      res.json({error: e})
+    } catch (e) {
+      res.json({ error: e });
     }
   }
 
-  res.json({ error: err })
+  res.json({ error: err });
 }
-
-
 
 async function get_endpoint(path, res, endpoint, i_hs) {
   if (endpoint === undefined) return;

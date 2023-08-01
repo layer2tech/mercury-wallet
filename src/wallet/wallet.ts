@@ -29,7 +29,13 @@ import {
   proofKeyFromXpub,
 } from "./util";
 import { MasterKey2 } from "./mercury/ecdsa";
-import { depositConfirm, depositInit, tokenDepositInit, tokenInit, tokenVerify } from "./mercury/deposit";
+import {
+  depositConfirm,
+  depositInit,
+  tokenDepositInit,
+  tokenInit,
+  tokenVerify,
+} from "./mercury/deposit";
 import {
   withdraw,
   withdraw_init,
@@ -210,7 +216,7 @@ export class Wallet {
 
     this.activity = new ActivityLog();
 
-    if (networkType === undefined){
+    if (networkType === undefined) {
       this.networkType = NETWORK_TYPE.TOR;
     } else {
       this.networkType = networkType;
@@ -242,7 +248,7 @@ export class Wallet {
 
     this.statechain_id_set = new Set();
 
-    this.tokens = []
+    this.tokens = [];
 
     this.tor_circuit = [];
 
@@ -509,12 +515,12 @@ export class Wallet {
           : json_wallet.networkType;
 
       if (isElectron()) {
-        if (json_wallet.config.electrum_config.host.includes("testnet")) {
-          json_wallet.config.network = bitcoin.networks.testnet;
-        } else if (
-          json_wallet.config.electrum_config.host.includes("regtest")
-        ) {
+        // An issue occurs with reloading the networks so check what network it is and give it again.
+        let json_wallet_network = json_wallet.config.network.bech32;
+        if (json_wallet_network === "bcrt") {
           json_wallet.config.network = bitcoin.networks.regtest;
+        } else if (json_wallet_network === "tb") {
+          json_wallet.config.network = bitcoin.networks.testnet;
         } else {
           json_wallet.config.network = bitcoin.networks.bitcoin;
         }
@@ -557,7 +563,7 @@ export class Wallet {
 
       new_wallet.current_sce_addr = json_wallet.current_sce_addr;
 
-      if(json_wallet.tokens) new_wallet.tokens = json_wallet.tokens
+      if (json_wallet.tokens) new_wallet.tokens = json_wallet.tokens;
       if (json_wallet.warnings !== undefined)
         new_wallet.warnings = json_wallet.warnings;
       // Make sure properties added to the wallet are handled
@@ -622,6 +628,8 @@ export class Wallet {
   }
 
   save_nomutex() {
+    console.log("SAVING WALLET AS ->", this.config.network);
+
     let wallet_json = cloneDeep(this);
     this.storage.storeWallet(wallet_json);
     wallet_json = null;
@@ -850,8 +858,6 @@ export class Wallet {
     this.active = state;
   }
 
-  connectToPeer = async (pubkey: string, host: string, port: number) => {};
-
   // Load wallet JSON from store
   static async load(
     wallet_name: string,
@@ -864,81 +870,7 @@ export class Wallet {
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
 
-    let channelsInfo = await wallet.lightning_client.getChannels(wallet.name);
-    let peerInfo = await wallet.lightning_client.getPeers();
-
-    let mergedInfo = channelsInfo.map((channel) => {
-      let peer = peerInfo.find((peer: any) => peer.id === channel.peer_id);
-      return {
-        ...channel,
-        host: peer.host,
-        port: peer.port,
-        pubkey: peer.pubkey,
-      };
-    });
-
-    async function connectToPeers() {
-      // Connect to peer on an interval loop
-      console.log("reconnecting to peer...");
-      console.log("mergedInfo.length:", mergedInfo.length);
-      // for every channel reconnect to its peer
-      for (var i = 0; i < mergedInfo.length; i++) {
-        let pubkey = mergedInfo[i].pubkey;
-        let host = mergedInfo[i].host;
-        let port = mergedInfo[i].port;
-
-        console.log("try to connect to pubkey->", pubkey);
-
-        try {
-          const response = await axios.post(
-            "http://localhost:3003/peer/connectToPeer",
-            {
-              pubkey,
-              host,
-              port,
-            }
-          );
-        } catch (error: any) {
-          console.log(error.response.data); // "Error connecting to peer"
-        }
-      }
-    }
-
-    // Call the function once immediately
-    connectToPeers();
-
-    // Regularly reconnect to peers every 60 seconds
-    setInterval(connectToPeers, 60000);
-
-    /* -- this is incorrect, channels need to be reloaded with chainmonitor stage
-      if (response.status === 200) {
-        console.log(response.data); // "Connected to peer"
-
-        let amount = mergedInfo[i].amount;
-        let push_msat = mergedInfo[i].push_msat;
-        let channelId = mergedInfo[i].id;
-        let channelType = mergedInfo[i].public;
-
-        try {
-          // now connect to its channel
-          const response2 = await axios.post(
-            "http://localhost:3003/peer/connectToChannel",
-            { pubkey, amount, push_msat, channelId, channelType }
-          );
-          if (response2.status === 200) {
-            console.log("response2 success", response2.data);
-          }
-        } catch (e) {
-          console.log("failed loading channels");
-        }
-      } else {
-        console.log(response.data); // "Failed to connect to peer"
-    }*/
-
-    wallet.saveChannels(channelsInfo);
     wallet.setActive();
-    wallet.nodeId = await wallet.lightning_client.getNodeId();
-
     return wallet;
   }
 
@@ -1017,17 +949,16 @@ export class Wallet {
     return n_recovered;
   }
 
-  newHttpClient(http_client: HttpClient | MockHttpClient){
+  newHttpClient(http_client: HttpClient | MockHttpClient) {
     if (http_client) {
       return http_client;
     }
-    if(this.config.testing_mode === true){
-      return new MockHttpClient()
-    }
-    else {
-      let http = new HttpClient('http://localhost:3001', true);
+    if (this.config.testing_mode === true) {
+      return new MockHttpClient();
+    } else {
+      let http = new HttpClient("http://localhost:3001", true);
       this.set_adapter_endpoints();
-      return http
+      return http;
     }
   }
 
@@ -1222,7 +1153,7 @@ export class Wallet {
     return this.block_height;
   }
 
-  resetBlockHeight(){
+  resetBlockHeight() {
     this.block_height = 0;
   }
 
@@ -1394,25 +1325,22 @@ export class Wallet {
       // check if in mempool and confirmed
       if (statecoin.status === STATECOIN_STATUS.IN_MEMPOOL) {
         let txid = statecoin.funding_txid;
-          if (txid != null) {
-            const tx_data: any = this.electrum_client.getTransaction(txid);
-              if (
-                tx_data?.confirmations != null &&
-                tx_data.confirmations >= 0
-              ) { 
-                this.statecoins.setCoinUnconfirmed(
-                  statecoin.shared_key_id,
-                  tx_data
-                );
-            }
-              if (
-                tx_data?.confirmations != null &&
-                tx_data.confirmations >= this.config.required_confirmations
-              ) { 
-                  statecoin.setConfirmed();
-                  this.saveStateCoin(statecoin);
-            }
+        if (txid != null) {
+          const tx_data: any = this.electrum_client.getTransaction(txid);
+          if (tx_data?.confirmations != null && tx_data.confirmations >= 0) {
+            this.statecoins.setCoinUnconfirmed(
+              statecoin.shared_key_id,
+              tx_data
+            );
           }
+          if (
+            tx_data?.confirmations != null &&
+            tx_data.confirmations >= this.config.required_confirmations
+          ) {
+            statecoin.setConfirmed();
+            this.saveStateCoin(statecoin);
+          }
+        }
       }
     });
   }
@@ -1618,9 +1546,7 @@ export class Wallet {
         undefined,
         false
       );
-    } else if (
-      bresponse.includes("insufficient fee")
-    ) {
+    } else if (bresponse.includes("insufficient fee")) {
       statecoin.setBackupBelowMinFee();
     }
   }
@@ -1658,9 +1584,7 @@ export class Wallet {
         undefined,
         false
       );
-    } else if (
-      err.includes("insufficient fee")
-    ) {
+    } else if (err.includes("insufficient fee")) {
       statecoin.setBackupBelowMinFee();
     }
   }
@@ -1886,48 +1810,45 @@ export class Wallet {
     return true;
   }
 
-  getToken(token_id: string){
-    let token = this.tokens.filter( item => item.token.id === token_id );
-    if(token[0]){
-      return token[0]
-    } else{
-      return null
+  getToken(token_id: string) {
+    let token = this.tokens.filter((item) => item.token.id === token_id);
+    if (token[0]) {
+      return token[0];
+    } else {
+      return null;
     }
   }
-  
-  getTokens(){
-    return this.tokens
+
+  getTokens() {
+    return this.tokens;
   }
 
-  spendToken(token_id: string, amount: number){
-
+  spendToken(token_id: string, amount: number) {
     let token = this.getToken(token_id);
-    if(token){
-      let values = Array.from(token.values)
+    if (token) {
+      let values = Array.from(token.values);
       let index = values.indexOf(amount);
-      values.splice(index,1);
+      values.splice(index, 1);
       this.deleteToken(token_id);
       let updated_token = {
         token: token.token,
-        values: values
-      }
+        values: values,
+      };
       this.addToken(updated_token);
     }
-
-
 
     this.save();
   }
 
   //Add token to wallet
-  addToken(token: TokenData){
+  addToken(token: TokenData) {
     this.tokens.push(token);
     this.save();
     return token;
   }
 
   deleteToken(token_id: string) {
-    this.tokens = this.tokens.filter(item => {
+    this.tokens = this.tokens.filter((item) => {
       if (item.token.id !== token_id) {
         return item;
       }
@@ -2096,33 +2017,31 @@ export class Wallet {
 
   // Initialise Token Deposit - Pay on Deposit
   async tokenInit(token_amount: number) {
-
     let token = await tokenInit(this.http_client, token_amount);
-    
+
     return token;
   }
 
-  async tokenVerify(token_id: string){
+  async tokenVerify(token_id: string) {
+    let verif = await tokenVerify(this.http_client, token_id);
 
-    let verif = await tokenVerify(this.http_client,token_id);
+    console.log("wallet.tokenVerify:", verif);
     // Checks verification of last token with ID: token_id
-    return verif
+    return verif;
   }
 
-  async tokenDepositInit (value: number, token_id: string){
-
+  async tokenDepositInit(value: number, token_id: string) {
     log.info("Depositing Init. " + fromSatoshi(value) + " BTC");
 
     let proof_key_bip32 = await this.genProofKey(); // Generate new proof key
 
-    let proof_key_pub = proof_key_bip32.publicKey.toString("hex")
-    let proof_key_priv = proof_key_bip32.privateKey!.toString("hex")
+    let proof_key_pub = proof_key_bip32.publicKey.toString("hex");
+    let proof_key_priv = proof_key_bip32.privateKey!.toString("hex");
 
     let wasm_client = await this.getWasm();
 
     let statecoin = await tokenDepositInit(
-      
-      this.http_client, 
+      this.http_client,
       wasm_client,
       token_id,
       proof_key_pub,
@@ -2135,7 +2054,7 @@ export class Wallet {
 
     statecoin.value = value;
 
-    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key)
+    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key);
 
     //Coin created and activity list updated
     this.addStatecoin(statecoin, ACTION.INITIATE);
@@ -2144,16 +2063,15 @@ export class Wallet {
     let p_addr = statecoin.getBtcAddress(this.config.network);
 
     // Import the BTC address into the wallet if using the electum-personal-server
-    await this.importAddress(p_addr)
+    await this.importAddress(p_addr);
 
     // Begin task waiting for tx in mempool and update StateCoin status upon success.
-    this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value)
+    this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value);
 
     log.info("Deposit Init done. Waiting for coins sent to " + p_addr);
     await this.saveStateCoinsList();
-    
-    return [statecoin.shared_key_id, p_addr]
-    
+
+    return [statecoin.shared_key_id, p_addr];
   }
 
   // Initialise deposit
@@ -2522,7 +2440,10 @@ export class Wallet {
 
   // Perform do_swap
   // Args: shared_key_id of coin to swap.
-  async do_swap(shared_key_id: string, excluded_txids: string[] = []): Promise<StateCoin | null> {
+  async do_swap(
+    shared_key_id: string,
+    excluded_txids: string[] = []
+  ): Promise<StateCoin | null> {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
     if (statecoin.backup_status === BACKUP_STATUS.MISSING)
@@ -2675,7 +2596,7 @@ export class Wallet {
     return this.swap_group_info;
   }
 
-  resetSwapGroupInfo(){
+  resetSwapGroupInfo() {
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
   }
 

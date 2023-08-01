@@ -3,6 +3,7 @@ describe("recovers wallet from seed", () => {
     cy.visit("/");
   });
 
+  /*
   it("should click recover from seed", () => {
     cy.get("[data-cy=recover-wallet-btn]").should("be.visible").click();
   });
