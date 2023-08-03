@@ -216,7 +216,11 @@ export const calculateFees = (fee_info: FeeInfo, value: number, input_number: nu
   if(fee_per_byte){
     // could calculate withdraw fee from fee_info here
 
-    tx_fee = getTxFee(fee_per_byte, input_number);
+    if(withdraw_fee > 0) {
+      tx_fee = getTxFee(fee_per_byte, input_number);
+    } else {
+      tx_fee = getTxFeePoundDepost(fee_per_byte);
+    }
 
   } else {
 
@@ -282,6 +286,10 @@ export const txBuilder = (network: Network, sc_infos: Array<StateChainDataAPI>, 
 
 export const getTxFee = (fee_per_byte: number, n_inputs: number = 1): number => {
   return Math.round(fee_per_byte * (VIRTUAL_TX_SIZE + (INPUT_TX_SIZE * (n_inputs - 1))) * 10e7) / 10e7
+}
+
+export const getTxFeePoundDepost = (fee_per_byte: number): number => {
+  return Math.round(fee_per_byte * FEE * 10e7) / 10e7
 }
 
 // CPFP tx builder spending backup tx to user specified address
