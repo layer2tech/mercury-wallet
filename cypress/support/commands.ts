@@ -62,12 +62,12 @@ Cypress.Commands.add("login", () => {
         .then(($els2) => {
           let texts2 = Array.from($els2, (el2) => el2.placeholder);
           var diffValues = arrayDiff(texts2, texts);
-          // for (var i = 0; i < 3; i++) {
-          //   cy.get("[data-cy=confirm-seed]")
-          //     .get("input")
-          //     .eq(diffIndexes[i])
-          //     .type(texts[diffIndexes[i]]);
-          // }
+          for (var i = 0; i < 3; i++) {
+            cy.get("[data-cy=confirm-seed]")
+              .get("input")
+              .eq(diffIndexes[i])
+              .type(texts[diffIndexes[i]]);
+          }
 
           cy.get("[data-cy=create-wallet-confirm-seed-btn]")
             .should("be.visible")
