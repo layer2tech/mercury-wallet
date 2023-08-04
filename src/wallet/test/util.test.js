@@ -26,6 +26,7 @@ import {
   getTxFee,
   FEE,
   FEE_1I1O,
+  getTxFeePoundDepost,
 } from "../util";
 import { encodeSCEAddress, txBuilder } from "../util";
 import {
@@ -228,7 +229,7 @@ describe('txBuilder - Withdrawal', function () {
     expect(tx_backup.outs[0].value).toBeLessThan(value);
     let fee_value = value - tx_backup.outs[0].value ;
     // With a 1 s/b fee, tx fee should be equal to signed tx size
-    expect(fee_value).toBe(VIRTUAL_TX_SIZE)
+    expect(fee_value).toBe(FEE)
   });
 });
 
@@ -293,7 +294,7 @@ describe('txBuilder - Batch Withdrawals', function () {
     let fee_value = sc_infos.length* value - tx_backup.outs[0].value
 
     // With a 1 s/b fee, tx fee should be equal to signed tx size
-    expect(fee_value).toBe(getTxFee(fee_per_byte, sc_infos.length));
+    expect(fee_value).toBe(getTxFeePoundDepost(fee_per_byte));
   });
 });
 

@@ -300,7 +300,7 @@ export const getTransferMsg4 = async (
   let fee_info: FeeInfo = await getFeeInfo(http_client);
   let tx_backup = Transaction.fromHex(transfer_msg3.tx_backup_psm.tx_hex);
   const backup_tx_amount =
-    tx_backup.outs[0].value + tx_backup.outs[1].value + FEE*fee_info.backup_fee_rate;
+    tx_backup.outs[0].value + (tx_backup.outs[1]?tx_backup.outs[1].value:0) + FEE*fee_info.backup_fee_rate;
   if (value !== null && value !== undefined) {
     if (backup_tx_amount !== value)
       throw new Error(
@@ -394,7 +394,7 @@ export const getTransferMsg4 = async (
     ) {
       if (
         funding_tx_data[i].value ===
-        tx_backup.outs[0].value + tx_backup.outs[1].value + FEE*fee_info.backup_fee_rate
+        tx_backup.outs[0].value + (tx_backup.outs[1]?tx_backup.outs[1].value:0) + FEE*fee_info.backup_fee_rate
       ) {
         match = true;
         break;

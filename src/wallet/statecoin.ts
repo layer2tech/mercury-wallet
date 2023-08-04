@@ -106,10 +106,12 @@ export class StateCoinList {
               Buffer.from(tx_backup_any.outs[0].script),
               tx_backup_any.outs[0].value
             );
-            tx_backup.addOutput(
-              Buffer.from(tx_backup_any.outs[1].script),
-              tx_backup_any.outs[1].value
-            );
+            if (tx_backup_any.outs[1]) {
+              tx_backup.addOutput(
+                Buffer.from(tx_backup_any.outs[1].script),
+                tx_backup_any.outs[1].value
+              );
+            }
           } else {
             tx_backup.addOutput(
               Buffer.from(
@@ -117,12 +119,14 @@ export class StateCoinList {
               ),
               tx_backup_any.outs[0].value
             );
-            tx_backup.addOutput(
-              Buffer.from(
-                Object.values(tx_backup_any.outs[1].script as object)
-              ),
-              tx_backup_any.outs[1].value
-            );
+            if (tx_backup_any.outs[1]) {
+              tx_backup.addOutput(
+                Buffer.from(
+                  Object.values(tx_backup_any.outs[1].script as object)
+                ),
+                tx_backup_any.outs[1].value
+              );
+            }
           }
         }
         item.tx_backup = tx_backup;
