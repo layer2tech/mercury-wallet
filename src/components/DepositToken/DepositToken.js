@@ -57,9 +57,9 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
 
   const handleConfirm = () => {
     if (tokenId !== "") {
-      dispatch(
-        callTokenDepositInit({ value: token.values[0], token: tokenId })
-      );
+      token.values.forEach((item) => {
+        dispatch(callTokenDepositInit({ value: item, token: tokenId }));
+      });
     } else if (token_verify.status === "idle") {
       dispatch(setToken(token));
     }
