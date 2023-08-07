@@ -88,8 +88,8 @@ describe("2P-ECDSA", function () {
       KEYGEN_SIGN_DATA.signature_hash,
       KEYGEN_SIGN_DATA.protocol
     );
-    expect(typeof signature[0]).toBe("string");
-    expect(typeof signature[1]).toBe("string");
+    expect(signature[0]).toBeInstanceOf(Array);
+    expect(signature[1]).toBeInstanceOf(Array);
   });
 });
 
@@ -825,5 +825,6 @@ describe("StateChain Entity", function () {
       expect(statecoin.smt_proof).not.toBe(null);
       expect(statecoin.status).toBe(STATECOIN_STATUS.INITIALISED);
     });
+  });
   });
 });
