@@ -3,7 +3,7 @@ import { Modal, Button } from "react-bootstrap";
 import { callDeleteToken, callGetTokens } from "../../features/WalletDataSlice";
 import DepositToken from "../DepositToken/DepositToken";
 
-const PayOnDeposit = () => {
+const PayOnDeposit = ({ setStep, setLoading, loading }) => {
   // deleting coins
   const [currentItem, setCurrentItem] = useState(null);
   const [showConfirmCoinAction, setConfirmCoinAction] = useState({
@@ -42,7 +42,13 @@ const PayOnDeposit = () => {
         if (token.values.length > 0) {
           return (
             <div className="pod-token" key={token.token.id}>
-              <DepositToken token={token} confirmDelete={confirmDelete} />
+              <DepositToken
+                token={token}
+                confirmDelete={confirmDelete}
+                setStep={setStep}
+                loading={loading}
+                setLoading={setLoading}
+              />
             </div>
           );
         }
