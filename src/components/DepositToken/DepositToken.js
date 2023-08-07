@@ -70,7 +70,6 @@ const DepositToken = ({
         dispatch(callTokenDepositInit({ value: item, token: tokenId })).then(
           (value) => {
             setLoading(false);
-            console.log("action value was:", value);
             // check if it failed?
             if ((value.type = "tokenDepositInit/fulfilled")) {
               setStep(3);
@@ -86,7 +85,6 @@ const DepositToken = ({
           setStep(3);
         }
       });
-      // call when dispatch is done
     }
   };
 
