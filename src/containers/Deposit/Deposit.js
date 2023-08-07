@@ -73,6 +73,9 @@ const DepositPage = () => {
   const [show, setShow] = useState(false);
   const [step, setStep] = useState(1);
 
+  // Loading
+  const [loading, setLoading] = useState(false);
+
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
@@ -336,7 +339,13 @@ const DepositPage = () => {
                 handleChildErrors={handleChildErrors}
               />
             ) : null}
-            {step === 2 ? <PayOnDeposit /> : null}
+            {step === 2 ? (
+              <PayOnDeposit
+                setStep={setStep}
+                setLoading={setLoading}
+                loading={loading}
+              />
+            ) : null}
             {step === 3 ? (
               <TransactionsBTC
                 selectedValues={selectedValues}
@@ -344,26 +353,26 @@ const DepositPage = () => {
                 setValueSelectionAddr={setValueSelectionAddr}
               />
             ) : null}
-            {step === 1 ? (
-              !childError && (
-                <button
-                  className={`primary-btn blue ${"step-" + step}`}
-                  onClick={(e) => onContinueClick(e)}
-                >
-                  Continue
-                </button>
-              )
-            ) : (
-              <div className="stepper-buttons">
-                <button
-                  className={`primary-btn blue ${"step-" + step}`}
-                  onClick={(e) => onContinueClick(e)}
-                >
-                  Go Back
-                </button>
-                {/* <button className={`primary-btn blue ${"step-" + step} continue`} onClick={(e) => onContinueClick(e)}>Continue</button> */}
-              </div>
-            )}
+            {step === 1
+              ? !childError && (
+                  <button
+                    className={`primary-btn blue ${"step-" + step}`}
+                    onClick={(e) => onContinueClick(e)}
+                  >
+                    Continue
+                  </button>
+                )
+              : !loading && (
+                  <div className="stepper-buttons">
+                    <button
+                      className={`primary-btn blue ${"step-" + step}`}
+                      onClick={(e) => onContinueClick(e)}
+                    >
+                      Go Back
+                    </button>
+                    {/* <button className={`primary-btn blue ${"step-" + step} continue`} onClick={(e) => onContinueClick(e)}>Continue</button> */}
+                  </div>
+                )}
           </div>
         ) : (
           <div className="wizard">

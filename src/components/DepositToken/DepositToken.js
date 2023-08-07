@@ -15,10 +15,17 @@ import {
 import close_img from "../../images/close-icon.png";
 import { DUST_LIMIT } from "../../wallet/util";
 import AddressInput from "../inputs/addressInput";
+import { Spinner } from "react-bootstrap";
 
 // Add Animation for when button clicked
 
-const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
+const DepositToken = ({
+  token = "",
+  confirmDelete = () => {},
+  setStep,
+  setLoading,
+  loading,
+}) => {
   const dispatch = useDispatch();
   const { fee_info, token_verify } = useSelector((state) => state.walletData);
 
@@ -57,11 +64,29 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
 
   const handleConfirm = () => {
     if (tokenId !== "") {
-      token.values.forEach((item) => {
-        dispatch(callTokenDepositInit({ value: item, token: tokenId }));
+      // Create an array of promises for dispatching callTokenDepositInit actions
+      token.values.map((item) => {
+        setLoading(true);
+        dispatch(callTokenDepositInit({ value: item, token: tokenId })).then(
+          (value) => {
+            setLoading(false);
+            console.log("action value was:", value);
+            // check if it failed?
+            if ((value.type = "tokenDepositInit/fulfilled")) {
+              setStep(3);
+            }
+          }
+        );
       });
     } else if (token_verify.status === "idle") {
-      dispatch(setToken(token));
+      setLoading(true);
+      dispatch(setToken(token)).then((value) => {
+        setLoading(false);
+        if ((value.type = "tokenDepositInit/fulfilled")) {
+          setStep(3);
+        }
+      });
+      // call when dispatch is done
     }
   };
 
@@ -75,7 +100,7 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
     }
   };
 
-  return (
+  return !loading ? (
     <div className="token-deposit receiveStatecoin content">
       <div className="Body">
         <div className="Body-button expired">
@@ -173,6 +198,13 @@ const DepositToken = ({ token = "", confirmDelete = () => {} }) => {
         </div>
       </div>
     </div>
+  ) : (
+    <>
+      <div style={{ margin: "auto", width: "50%", padding: "10px" }}>
+        Generating statecoins
+      </div>
+      <Spinner animation="border" variant="primary"></Spinner>
+    </>
   );
 };
 
