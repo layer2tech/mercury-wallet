@@ -27,6 +27,7 @@ const CreateWalletInfoPage = () => {
 
   useEffect(() => {
     callSetArgsHasTestnet(false);
+    selectNetwork(0);
   }, []);
 
   const selectNetwork = (mode) => {
