@@ -1847,7 +1847,22 @@ export class Wallet {
     return token;
   }
 
+  deleteTokenByAddress(lnAddress: string) {
+    console.log("[wallet.ts]: deleteToken was called on: ", lnAddress);
+    console.log("[wallet.ts]: this.tokens:", this.tokens);
+    this.tokens = this.tokens.filter((item) => {
+      if (item.token.ln !== lnAddress) {
+        return item;
+      }
+      return null;
+    });
+
+    this.save();
+  }
+
   deleteToken(token_id: string) {
+    console.log("[wallet.ts]: deleteToken was called on: ", token_id);
+    console.log("[wallet.ts]: this.tokens:", this.tokens);
     this.tokens = this.tokens.filter((item) => {
       if (item.token.id !== token_id) {
         return item;

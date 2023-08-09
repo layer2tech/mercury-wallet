@@ -7,9 +7,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { fromSatoshi } from "../../wallet";
 import QRCodeGenerator from "../QRCodeGenerator/QRCodeGenerator";
 import {
+  callDeleteToken,
+  callDeleteTokenByAddress,
+  callTokenDeleteAsync,
   callTokenDepositInit,
   callTokenVerify,
   callTokenVerifyValues,
+  setError,
   setToken,
 } from "../../features/WalletDataSlice";
 import close_img from "../../images/close-icon.png";
@@ -70,9 +74,18 @@ const DepositToken = ({
         dispatch(callTokenDepositInit({ value: item, token: tokenId })).then(
           (value) => {
             setLoading(false);
-            // check if it failed?
+
             if ((value.type = "tokenDepositInit/fulfilled")) {
-              setStep(3);
+              dispatch(
+                callDeleteTokenByAddress({ lnAddress: address.addr })
+              ).then(() => {
+                setStep(3);
+              });
+            } else {
+              // if it failed
+              dispatch(
+                setError({ msg: "Coin was unable to be created, try again" })
+              );
             }
           }
         );
@@ -82,7 +95,15 @@ const DepositToken = ({
       dispatch(setToken(token)).then((value) => {
         setLoading(false);
         if ((value.type = "tokenDepositInit/fulfilled")) {
-          setStep(3);
+          dispatch(callDeleteTokenByAddress({ lnAddress: address.addr })).then(
+            () => {
+              setStep(3);
+            }
+          );
+        } else {
+          dispatch(
+            setError({ msg: "Coin was unable to be created, try again" })
+          );
         }
       });
     }
