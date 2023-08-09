@@ -106,7 +106,7 @@ describe('txBuilder - Back Up Transaction', function() {
     // Set withdrawal statecoin to 10000
     sc_infos[0].amount = 10000;
 
-    let tx_backup = txBuilder(network, sc_infos, backup_receive_addr, FEE_INFO, nSequence, undefined, locktime).buildIncomplete();
+    let tx_backup = txBuilder(network, sc_infos, backup_receive_addr, FEE_INFO, nSequence, undefined, locktime).extractTransaction();
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(sc_infos[0].utxo.txid);
     expect(tx_backup.outs.length).toBe(2);
@@ -120,7 +120,7 @@ describe('txBuilder - Back Up Transaction', function() {
 
     fee_info.withdraw = 0;
     
-    let tx_backup = txBuilder(network, sc_infos, backup_receive_addr, fee_info, nSequence, undefined, locktime).buildIncomplete();
+    let tx_backup = txBuilder(network, sc_infos, backup_receive_addr, fee_info, nSequence, undefined, locktime).extractTransaction();
     
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(sc_infos[0].utxo.txid);
@@ -204,7 +204,7 @@ describe('txBuilder - Withdrawal', function () {
     // set input value 100000
 
     fee_info.withdraw = 141;
-    let tx_backup = txBuilder( network, sc_infos, rec_address, fee_info, nSequence, fee_per_byte ).buildIncomplete();
+    let tx_backup = txBuilder( network, sc_infos, rec_address, fee_info, nSequence, fee_per_byte ).extractTransaction();
 
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
@@ -221,7 +221,7 @@ describe('txBuilder - Withdrawal', function () {
     // set input value 100000
 
     fee_info.withdraw = 0;
-    let tx_backup = txBuilder( network, sc_infos, rec_address, fee_info, nSequence, fee_per_byte ).buildIncomplete();
+    let tx_backup = txBuilder( network, sc_infos, rec_address, fee_info, nSequence, fee_per_byte ).extractTransaction();
 
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
@@ -263,7 +263,7 @@ describe('txBuilder - Batch Withdrawals', function () {
     sc_infos.push({ utxo: { txid: FUNDING_TXIDS[1], vout: funding_vout }, amount: value, chain: [], locktime: 0 })
     
     fee_info.withdraw = 141;
-    let tx_backup = txBuilder(network, sc_infos, rec_address, fee_info, nSequence, fee_per_byte).buildIncomplete();
+    let tx_backup = txBuilder(network, sc_infos, rec_address, fee_info, nSequence, fee_per_byte).extractTransaction();
 
     expect(tx_backup.ins.length).toBe(sc_infos.length);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
@@ -284,7 +284,7 @@ describe('txBuilder - Batch Withdrawals', function () {
     sc_infos.push({ utxo: { txid: FUNDING_TXIDS[1], vout: funding_vout }, amount: value, chain: [], locktime: 0 })
     
     fee_info.withdraw = 0;
-    let tx_backup = txBuilder(network, sc_infos, rec_address, fee_info, nSequence, fee_per_byte).buildIncomplete();
+    let tx_backup = txBuilder(network, sc_infos, rec_address, fee_info, nSequence, fee_per_byte).extractTransaction();
 
     expect(tx_backup.ins.length).toBe(sc_infos.length);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
@@ -347,7 +347,7 @@ describe("txCPFPBuild", function () {
       value,
       fee_rate,
       p2wpkh
-    ).buildIncomplete();
+    ).extractTransaction();
     expect(tx_backup.ins.length).toBe(1);
     expect(tx_backup.ins[0].hash.reverse().toString("hex")).toBe(funding_txid);
     expect(tx_backup.outs.length).toBe(1);
@@ -363,7 +363,7 @@ describe("txCPFPBuild", function () {
       value,
       fee_rate,
       p2wpkh
-    ).buildIncomplete();
+    ).extractTransaction();
 
     let tx_fee = fee_rate * (FEE + FEE_1I1O) - FEE;
 

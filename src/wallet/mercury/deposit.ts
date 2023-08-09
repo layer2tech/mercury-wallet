@@ -186,7 +186,7 @@ export const depositConfirm = async (
     nSequence,
     fee_info.backup_fee_rate,
     init_locktime
-  ).buildIncomplete();
+  ).extractTransaction();
 
   //co sign funding tx input signatureHash
   let pk = statecoin.getSharedPubKey();

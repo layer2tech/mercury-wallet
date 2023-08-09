@@ -1,7 +1,7 @@
 'use strict';
 // Withdraw
 
-import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
+import { BIP32Interface, Network, Transaction, Psbt } from "bitcoinjs-lib";
 import { getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE, StateCoin } from "..";
 import { PrepareSignTxMsg } from "./ecdsa";
 import { getSigHash, StateChainSig, txBuilder, WITHDRAW_SEQUENCE } from "../util";
@@ -104,7 +104,7 @@ export const withdraw_init = async (
 
   let nSequence = WITHDRAW_SEQUENCE;
 
-  tx_withdraw_unsigned = txBuilder(network, sc_infos, rec_addr, fee_info, nSequence, fee_per_byte).buildIncomplete();
+  tx_withdraw_unsigned = txBuilder(network, sc_infos, rec_addr, fee_info, nSequence, fee_per_byte).extractTransaction();
 
   let signatureHashes: string[] = [];
 
@@ -209,7 +209,7 @@ export const withdraw_duplicate = async (
     throw Error("Duplicate deposits cannot be batch withdrawn");
   } else {
     let nSequence = WITHDRAW_SEQUENCE;
-    tx_withdraw_unsigned = txBuilder(network, sc_infos, rec_addr, fee_info, nSequence, fee_per_byte).buildIncomplete();
+    tx_withdraw_unsigned = txBuilder(network, sc_infos, rec_addr, fee_info, nSequence, fee_per_byte).extractTransaction();
   }
 
   let signatureHashes: string[] = [];

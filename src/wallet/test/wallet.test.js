@@ -1132,7 +1132,7 @@ describe('createBackupTxCPFP', function () {
     fee_info.address = await wallet.genBtcAddress();
     tx_backup = txBuilder(network, sc_infos, rec_address, fee_info, WITHDRAW_SEQUENCE, 1 );
 
-    wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
+    wallet.statecoins.coins[0].tx_backup = tx_backup.extractTransaction();
   });
 
   test("Throw on invalid value", async function () {
@@ -1210,7 +1210,7 @@ describe('updateBackupTxStatus', function () {
       nSequence,
       0,
       1000);
-    wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
+    wallet.statecoins.coins[0].tx_backup = tx_backup.extractTransaction();
     wallet.block_height = 100;
     await wallet.updateBackupTxStatus(false);
     expect(wallet.statecoins.coins[0].status).toBe(STATECOIN_STATUS.SWAPLIMIT);
@@ -1220,7 +1220,7 @@ describe('updateBackupTxStatus', function () {
     // locktime = 1000, height = 1000, EXPIRED triggered
     let tx_backup = txBuilder(network, sc_infos, await wallet.genBtcAddress(), fee_info, nSequence, 1, init_locktime  );
 
-    wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
+    wallet.statecoins.coins[1].tx_backup = tx_backup.extractTransaction();
     wallet.block_height = 1000;
     await wallet.updateBackupTxStatus(false);
     expect(wallet.statecoins.coins[1].status).toBe(STATECOIN_STATUS.EXPIRED);
@@ -1236,7 +1236,7 @@ describe('updateBackupTxStatus', function () {
     sc_infos[0].utxo.txid = "58f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41";
 
     let tx_backup = txBuilder(network, sc_infos, await wallet.genBtcAddress(), fee_info, nSequence, 1, init_locktime  );
-    wallet.statecoins.coins[1].tx_backup = tx_backup.buildIncomplete();
+    wallet.statecoins.coins[1].tx_backup = tx_backup.extractTransaction();
     wallet.block_height = 1003;
     wallet.statecoins.coins[1].status = STATECOIN_STATUS.EXPIRED;
     wallet.statecoins.coins[1].backup_status = BACKUP_STATUS.IN_MEMPOOL;
@@ -1256,7 +1256,7 @@ describe('updateBackupTxStatus', function () {
 
     sc_infos[0].utxo.txid = "01f2978e5c2cf407970d7213f2b428990193b2fe3ef6aca531316cdcf347cc41";
     let tx_backup = txBuilder(network, sc_infos, await wallet.genBtcAddress(), fee_info, nSequence, 1, init_locktime  )
-    wallet.statecoins.coins[0].tx_backup = tx_backup.buildIncomplete();
+    wallet.statecoins.coins[0].tx_backup = tx_backup.extractTransaction();
     wallet.block_height = 1003;
     wallet.electrum_client.broadcastTransaction = jest.fn(
       async (_backup_tx) => {

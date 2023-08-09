@@ -1785,9 +1785,9 @@ export class Wallet {
     );
 
     // sign tx
-    txb_cpfp.sign(0, ec_pair, null!, null!, backup_tx_data.output_value);
+    txb_cpfp.signAllInputs(ec_pair);
 
-    let cpfp_tx = txb_cpfp.build();
+    let cpfp_tx = txb_cpfp.extractTransaction();
 
     // add CPFP tx to statecoin
     for (let i = 0; i < this.statecoins.coins.length; i++) {
