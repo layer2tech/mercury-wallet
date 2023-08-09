@@ -236,7 +236,7 @@ const Coin = (props) => {
           swapPage || sendPage || withdrawPage ? props.coin_data.status : ""
         } ${isSelected(props.coin_data.shared_key_id) ? "selected" : ""}`}
         onClick={(event) => {
-          if (event.target.className.includes("toggle")) {
+          if (typeof event.target.className === 'string' && event.target.className.includes("toggle")) {
             return;
           }
           if (
