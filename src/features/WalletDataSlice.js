@@ -1424,6 +1424,36 @@ export const callTokenDepositInit = createAsyncThunk(
   }
 );
 
+export const callDeleteTokenByAddress = createAsyncThunk(
+  "tokenDeleteByAddress",
+  async (action, thunkAPI) => {
+    if (isWalletLoaded()) {
+      console.log(
+        "trying to delete token id by address" +
+          action.lnAddress +
+          " from wallet."
+      );
+      log.info(
+        "Removing token by address" + action.lnAddress + " from wallet."
+      );
+      wallet.deleteTokenByAddress(action.lnAddress);
+    }
+  }
+);
+
+export const callTokenDeleteAsync = createAsyncThunk(
+  "tokenDeleteAsync",
+  async (action, thunkAPI) => {
+    if (isWalletLoaded()) {
+      console.log(
+        "trying to delete token id" + action.tokenId + " from wallet."
+      );
+      log.info("Removing token " + action.tokenId + " from wallet.");
+      wallet.deleteToken(action.tokenId);
+    }
+  }
+);
+
 export const callDepositConfirm = createAsyncThunk(
   "depositConfirm",
   async (action, thunkAPI) => {
