@@ -178,7 +178,6 @@ export const depositConfirm = async (
   // Build unsigned backup tx
   let backup_receive_addr = pubKeyTobtcAddr(statecoin.proof_key, network);
 
-  // @ts-ignore
   let tx_backup_unsigned_psbt = txBuilder(
     network,
     sc_infos,
