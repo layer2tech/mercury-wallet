@@ -330,8 +330,11 @@ export const txCPFPBuild = (
     hash: funding_txid,
     index: funding_vout,
     sequence: 0xffffffff,
-    tapScriptSig: p2wpkh.output
-  });;
+    witnessUtxo: {
+      script: p2wpkh.output,
+      value: value,
+    },
+  });
   txb.addOutput({
     address: rec_address, 
     value: value - total_fee

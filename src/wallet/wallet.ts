@@ -1786,6 +1786,8 @@ export class Wallet {
 
     // sign tx
     txb_cpfp.signAllInputs(ec_pair);
+    txb_cpfp.validateSignaturesOfAllInputs();
+    txb_cpfp.finalizeAllInputs();
 
     let cpfp_tx = txb_cpfp.extractTransaction();
 
