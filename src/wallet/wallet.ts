@@ -88,6 +88,7 @@ import isElectron from "is-electron";
 import { TokenData } from "./statecoin";
 import { LDKClient, LIGHTNING_POST_ROUTE } from "./ldk_client";
 import { Channel, ChannelInfo, ChannelList } from "./channel";
+import { callGetUnspentStatecoins } from "../features/WalletDataSlice";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -1997,6 +1998,10 @@ export class Wallet {
     this.statecoins.setCoinSending(shared_key_id);
   }
 
+  setStateCoinAvailable(shared_key_id: string) {
+    this.statecoins.setCoinAvailable(shared_key_id);
+  }
+
   setStateCoinAutoSwap(shared_key_id: string) {
     this.statecoins.setAutoSwap(shared_key_id);
   }
@@ -2846,6 +2851,15 @@ export class Wallet {
       null,
       excluded_txids
     );
+
+    let prev_shared_key_ids = finalize_data.tx_backup_psm.shared_key_ids;
+    let coin_data = callGetUnspentStatecoins();
+    let last_shared_key_id= prev_shared_key_ids[prev_shared_key_ids.length - 1];
+    for (const coin of coin_data) {
+      if (coin.shared_key_id === last_shared_key_id) {
+        this.setStateCoinAvailable(last_shared_key_id);
+      }
+    };
 
     // Finalize protocol run by generating new shared key and updating wallet.
     await this.transfer_receiver_finalize(finalize_data);
