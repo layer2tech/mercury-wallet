@@ -374,6 +374,13 @@ export class StateCoinList {
     }
   }
 
+  setCoinAvailable(shared_key_id: string) {
+    let coin = this.getCoin(shared_key_id);
+    if (coin) {
+      coin.setConfirmed();
+    }
+  }
+
   setCoinSpent(
     shared_key_id: string,
     action: string,
