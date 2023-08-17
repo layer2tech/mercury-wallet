@@ -1,14 +1,13 @@
 'use strict';
-import { Link, withRouter, Redirect } from "react-router-dom";
+import { withRouter, Redirect } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
-import React, { useState, useEffect } from 'react';
-import { Swaps, StdButton, Tutorial, CoinsList } from "../../components";
+import { useState, useEffect } from 'react';
+import { Swaps, Tutorial, CoinsList } from "../../components";
 import Loading from "../../components/Loading/Loading";
 import {
   isWalletLoaded,
   setError,
   setOneOffMsg,
-  callDoAutoSwap,
   callDoSwap,
   callSwapDeregisterUtxo,
   callGetSwapGroupInfo,
@@ -19,17 +18,14 @@ import {
   addCoinToSwapRecords,
   removeCoinFromSwapRecords,
   setSwapLoad,
-  addSwapPendingCoin,
   removeSwapPendingCoin,
   handleEndSwap,
-  addInSwapValue,
   updateInSwapValues,
-  removeInSwapValue,
   checkSwapAvailability
 } from "../../features/WalletDataSlice";
 // import SwapIcon from '../../images/swap_icon-blue.png'
 // import swapIcon from '../../components/SendModal/icons';
-import { fromSatoshi, STATECOIN_STATUS } from '../../wallet';
+import { fromSatoshi } from '../../wallet';
 import './Swap.css';
 import PageHeader from "../PageHeader/PageHeader";
 

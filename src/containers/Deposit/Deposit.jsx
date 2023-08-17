@@ -16,7 +16,6 @@ import {
 import {
   isWalletLoaded,
   callGetConfig,
-  callGetAccount,
   callTokenInit,
   setError,
   callTokenVerify,

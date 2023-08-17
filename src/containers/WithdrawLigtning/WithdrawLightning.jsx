@@ -1,6 +1,5 @@
 "use strict";
 import walletIcon from "../../images/walletIcon.png";
-import withdrowIcon from "../../images/withdrow-icon.png";
 import { withRouter, Redirect } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -9,8 +8,6 @@ import {
   isWalletLoaded,
   callGetFeeEstimation,
   callGetConfig,
-  setShowWithdrawPopup,
-  setWithdrawTxid,
   checkChannelWithdrawal,
   setWarning,
   updateBalanceInfo,
@@ -20,7 +17,7 @@ import {
   setSuccessMessage
 } from "../../features/WalletDataSlice";
 
-import { AddressInput, Tutorial, ConfirmPopup } from "../../components";
+import { Tutorial, ConfirmPopup } from "../../components";
 
 import "./WithdrawLightning.css";
 import PageHeader from "../PageHeader/PageHeader";

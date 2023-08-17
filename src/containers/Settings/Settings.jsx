@@ -1,7 +1,7 @@
 "use strict";
 import settings from "../../images/settings.png";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, withRouter, Redirect } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import icon2 from "../../images/icon2.png";
@@ -23,16 +23,12 @@ import {
   unloadWallet,
   stopWallet,
   callGetActivityLogItems,
-  callGetActivityLog,
-  callGetArgsHasTestnet,
   callGetPassword,
   callGetMnemonic,
   callCheckCoins,
   callDeriveXpub,
   setWalletLoaded,
   getNetworkType,
-  callIsTestnet,
-  callGetNetwork,
   setError,
   setExcludedTxids,
 } from "../../features/WalletDataSlice";

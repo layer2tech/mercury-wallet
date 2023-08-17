@@ -2,29 +2,23 @@
 import walletIcon from '../../images/walletIcon.png';
 import withdrowIcon from "../../images/withdrow-icon.png";
 
-import {Link, withRouter, Redirect} from "react-router-dom";
-import React, {useState, useEffect} from 'react';
+import {withRouter, Redirect} from "react-router-dom";
+import {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
-
-
 
 import {isWalletLoaded, 
   callWithdraw, 
   callGetFeeEstimation, 
-  setError, 
   setNotification, 
   callGetConfig, 
-  callSumStatecoinValues, 
-  callIsBatchMixedPrivacy, 
   callGetStateCoin,
   checkWithdrawal,
   setShowWithdrawPopup,
   setWithdrawTxid
 } from '../../features/WalletDataSlice';
 
-import { StdButton, AddressInput, Tutorial, CopiedButton, ConfirmPopup, ItemsContainer} from "../../components";
+import { AddressInput, Tutorial, ConfirmPopup, ItemsContainer} from "../../components";
 import {FILTER_BY_OPTION} from "../../components/MainHeader/MainHeader"
-import {fromSatoshi, toSatoshi} from '../../wallet/util';
 
 import Loading from '../../components/Loading/Loading';
 

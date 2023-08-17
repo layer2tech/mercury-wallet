@@ -1,7 +1,6 @@
 "use strict";
 import arrow from "../../images/arrow-up.png";
 import { withRouter, Redirect } from "react-router-dom";
-
 import {
   isWalletLoaded,
   callGetConfig,
@@ -10,18 +9,12 @@ import {
   getNodeId,
   setError
 } from "../../features/WalletDataSlice";
-
 import { AddressInput, NodeId, Tutorial } from "../../components";
-
 import PageHeader from "../PageHeader/PageHeader";
 import { useState } from "react";
-
 import "./ReceiveLightning.css";
 import Invoice from "../Invoice/Invoice";
-
 import { useSelector, useDispatch } from "react-redux";
-
-const TimeToExpire = 180;
 
 const ReceiveLightning = () => {
   // Time for expiry of invoice in seconds

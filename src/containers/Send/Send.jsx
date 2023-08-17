@@ -1,10 +1,8 @@
 'use strict';
 import { useEffect, useState } from 'react';
-import { Link, withRouter, Redirect } from "react-router-dom";
+import { withRouter, Redirect } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
-import { StdButton, AddressInput, SendModal, ConfirmPopup, Loading, ItemsContainer } from "../../components";
-
-import { fromSatoshi } from '../../wallet/util';
+import { AddressInput, SendModal, ConfirmPopup, Loading, ItemsContainer } from "../../components";
 import { decodeSCEAddress,  encodeMessage } from '../../wallet/util';
 import {
   isWalletLoaded, callTransferSender, setError, setNotification,

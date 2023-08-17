@@ -1,9 +1,9 @@
 "use strict";
-import React, { useEffect, useState } from "react";
-import { Link, withRouter, Redirect } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { withRouter, Redirect } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
-import { StdButton, AddressInput, CopiedButton } from "../../components";
+import { AddressInput, CopiedButton } from "../../components";
 import QRCode from "qrcode.react";
 
 import {

@@ -1,10 +1,9 @@
 "use strict";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useHistory } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { Storage } from "../../store";
 import {
-  walletLoad,
   setError,
   callGetUnspentStatecoins,
   setWalletLoaded,
@@ -12,7 +11,6 @@ import {
   initActivityLogItems,
   loadWalletFromMemory,
   walletLoadConnection,
-  startLightningLDK,
 } from "../../features/WalletDataSlice";
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";

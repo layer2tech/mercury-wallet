@@ -31,7 +31,6 @@
   "homepage": "./",
   "main": "public/electron.js",
   "scripts": {
-    "e2e": "testcafe \"electron:.\" \"./src/e2e/**/*.js\"",
     "install-local": "yarn add file:./tor-adapter",
     "start": "node ./setup && react-app-rewired start --trace-deprecation",
     "adapters-browser": "concurrently \"node ./setup && react-app-rewired start\" \" npm run tor-adapter\" \" npm run lightning-adapter\"",
@@ -170,8 +169,6 @@
     "stream-http": "^3.2.0",
     "superagent": "^6.1.0",
     "suppress-warnings": "^1.0.2",
-    "testcafe": "^1.14.2",
-    "testcafe-browser-provider-electron": "^0.0.16",
     "tls": "^0.0.1",
     "typeforce": "^1.11.3",
     "url": "^0.11.0",
