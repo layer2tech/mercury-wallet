@@ -2,7 +2,7 @@
  * @jest-environment ./jest-environment-uint8array-27.js
  */
 
-import { networks, ECPair } from "bitcoinjs-lib";
+import { networks } from "bitcoinjs-lib";
 import { BACKUP_SEQUENCE, FEE_INFO, WITHDRAW_SEQUENCE } from '../mocks/mock_http_client';
 import {
   txBackupBuild,
@@ -449,7 +449,7 @@ test("transfer message encode/decode", function () {
 });
 
 test("Secp256k Point encode/decode", async function () {
-  let bip32 = ECPair.makeRandom({ compressed: false });
+  let bip32 = bitcoin.ECPair.makeRandom({ compressed: false });
   let publicKey = bip32.publicKey;
 
   let encoded = encodeSecp256k1Point(publicKey.toString("hex"));

@@ -1,7 +1,7 @@
 // History is a log of all Mercury protocol actions taken by the wallet.
 
 "use strict";
-import { Network } from "bitcoinjs-lib/types/networks";
+import { Network } from "bitcoinjs-lib";
 import WrappedLogger from "../wrapped_logger";
 import { ElectrumClientConfig } from "./electrum";
 

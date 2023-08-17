@@ -1,13 +1,13 @@
 // wallet utilities
 
 import {
-  BIP32Interface,
   Network,
   Psbt,
   crypto as crypto_btc,
   script,
   Transaction,
 } from "bitcoinjs-lib";
+import { BIP32Interface } from "bip32";
 import { Root, StateChainDataAPI, FeeInfo, OutPoint } from "./mercury/info_api";
 import { Secp256k1Point } from "./mercury/transfer";
 import { TransferMsg3, PrepareSignTxMsg } from "./mercury/transfer";

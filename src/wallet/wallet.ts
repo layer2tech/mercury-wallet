@@ -1,6 +1,7 @@
 // Main wallet struct storing Keys derivation material and Mercury Statecoins.
 "use strict";
-import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
+import { Network, Transaction } from "bitcoinjs-lib";
+import { BIP32Interface } from "bip32";
 import { ACTION, ActivityLog, ActivityLogItem } from "./activity_log";
 import {
   ElectrumClient,
@@ -1552,6 +1553,9 @@ export class Wallet {
     }
   }
 
+  validator = (pubkey: Buffer, msghash: Buffer, signature: Buffer): boolean => 
+    bitcoin.ECPair.fromPublicKey(pubkey).verify(msghash, signature);
+
   async processTXBroadcastError(statecoin: StateCoin, err: any) {
     if (
       err.toString().includes("already") &&
@@ -1787,7 +1791,7 @@ export class Wallet {
 
     // sign tx
     txb_cpfp.signAllInputs(ec_pair);
-    txb_cpfp.validateSignaturesOfAllInputs();
+    txb_cpfp.validateSignaturesOfAllInputs(this.validator);
     txb_cpfp.finalizeAllInputs();
 
     let cpfp_tx = txb_cpfp.extractTransaction();

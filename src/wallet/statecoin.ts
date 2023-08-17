@@ -2,7 +2,7 @@
 
 "use strict";
 import { Network, Transaction } from "bitcoinjs-lib";
-import { Transaction as BTCTransaction } from "bitcoinjs-lib/types/transaction";
+import { Transaction as BTCTransaction } from "bitcoinjs-lib";
 import { ACTION } from ".";
 import { ElectrumTxData } from "../wallet/electrum";
 import { MasterKey2 } from "./mercury/ecdsa";

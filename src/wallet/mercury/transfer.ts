@@ -1,7 +1,8 @@
 "use strict";
 // Mercury transfer protocol. Transfer statecoins to new owner.
 
-import { BIP32Interface, Network, Transaction, script } from "bitcoinjs-lib";
+import { Network, Transaction, script } from "bitcoinjs-lib";
+import { BIP32Interface } from "bip32";
 import {
   ElectrumClient,
   MockElectrumClient,
