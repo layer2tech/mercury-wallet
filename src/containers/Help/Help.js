@@ -1,13 +1,10 @@
 'use strict';
-import question from "../../images/question-blue.png";
+import './Help.css';
 
-import React from 'react';
+import question from "../../images/question-blue.png";
 import {Link, withRouter} from "react-router-dom";
 import {Tab, Tabs} from "react-bootstrap";
-
 import { StdButton } from '../../components/'
-
-import './Help.css';
 import TermsConditions from "../../components/TermsConditions/TermsConditions";
 import { useSelector } from "react-redux";
 

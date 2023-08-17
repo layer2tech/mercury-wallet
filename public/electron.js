@@ -352,6 +352,7 @@ app.on("window-all-closed", async () => {
   app.quit();
 });
 
+
 app.on("activate", () => {
   if (mainWindow === null) {
     createWindow();

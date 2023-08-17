@@ -40,7 +40,7 @@ import {
 import Loading from "../../components/Loading/Loading";
 
 import "./Settings.css";
-import Tutorial from "../../components/Tutorial";
+import Tutorial from "../../components/Tutorial/Tutorial";
 
 const SettingsPage = (props) => {
   const dispatch = useDispatch();

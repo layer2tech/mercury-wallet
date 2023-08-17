@@ -3,6 +3,7 @@ table {
    width: 100%;
    justify-content: space-between;
 }
+
 table thead th {
    display: none;
 }
@@ -15,22 +16,24 @@ table tbody tr {
    border-bottom: 1px solid #dee2e6;
 
 }
+
 table tbody {
    width: 100%;
 }
+
 table tbody tr td {
    width: 50%;
    border-top: none;
    font-weight: bold;
    margin: 10px auto;
 }
+
 table tbody tr td {
    display: flex;
    align-items: center;
    text-align: center;
    justify-content: center;
 }
-
 
 table span.red {
    color:#E64A19 ;
@@ -39,6 +42,7 @@ table span.red {
 table span.green {
    color:var(--success) ;
 }
+
 table .txid {
    display: block;
    width: 100px;
@@ -59,16 +63,17 @@ table .txid:hover{
    width:auto;
 }
 
-
 .table td, .table th {
    border: none !important;
 }
+
 table .date {
    padding: 20px 0;
    color: var(--text-primary);
    font-weight: 500;
    font-size: 14px;
 }
+
 table span {
    display: block;
    color: var(--text-primary);
@@ -76,14 +81,13 @@ table span {
    font-size: 14px;
    margin-left: 10px;
 }
+
 table span.grey {
    display: block;
    color: var(--text-secondary);
    font-size: 14px;
    font-weight: 400;
 }
-
-
 
 @media only screen and (max-width: 768px) {
    table tbody tr {
@@ -98,13 +102,13 @@ table span.grey {
    }
 
 }
+
 @media only screen and (min-width: 1055px) {
    table .tooltip {
       margin-left:5px;
       margin-top: 1%!important;;
    }
 }
-
 
 table .tooltip {
    visibility: hidden;
@@ -120,7 +124,6 @@ table .tooltip {
    margin-top: 2%;
    transition: opacity 0.3s;
 }
-
 
 table.swap-row-table:hover .tooltip {
    visibility: visible;

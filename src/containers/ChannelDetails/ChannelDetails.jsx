@@ -12,7 +12,7 @@ import btc_img from "../../images/icon1.png";
 import arrow_img from "../../images/scan-arrow.png";
 import copy_img from "../../images/icon2.png";
 import InvoiceOptions from "../../components/InvoiceOptions/InvoiceOptions";
-import RadioButton from "../../components/panelConnectivity/RadioButton";
+import RadioButton from "../../components/PanelConnectivity/RadioButton";
 
 const copyAddressToClipboard = (event, address) => {
   event.stopPropagation();

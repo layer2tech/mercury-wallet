@@ -10,17 +10,15 @@ color: var(--text-primary);
 .dark-mode .receiveStatecoin .receive-bottom div:first-child .inputs input { 
   border: 1px solid rgba(117, 117, 117, 0.380392);
 }
-
-
-  .dark-mode .welcome-btns img {
-    filter: invert(1);
-  }
-  .dark-mode .deposit-settings select,
+.dark-mode .welcome-btns img {
+  filter: invert(1);
+}
+.dark-mode .deposit-settings select,
 .dark-mode .deposit-settings input {
   border: 1px solid #4e4e4e;
   border-radius: 4px;
 }
-  .dark-mode .settings .content .inputs .inputs-item .control-label,
+.dark-mode .settings .content .inputs .inputs-item .control-label,
 .dark-mode .withdraw.content .inputs .smalltxt,
 .dark-mode .sendStatecoin.content .inputs .smalltxt,
 .dark-mode .receiveStatecoin .receive-bottom div:first-child .inputs .smalltxt {

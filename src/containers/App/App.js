@@ -1,7 +1,7 @@
 "use strict";
 import { useState, useEffect } from "react";
 import { HashRouter as Router, Route, Switch } from "react-router-dom";
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { shallowEqual, useSelector } from "react-redux";
 import {
   WelcomePage,
   CreateWalletInfoPage,
@@ -41,13 +41,12 @@ const App = () => {
     (state) => state.walletData.walletLoaded,
     shallowEqual
   );
+
   const [online, setOnline] = useState(navigator.onLine);
   const [networkType, setNetwork] = useState(getNetworkType());
-
   const { dark_mode } = useSelector((state) => state.themeData);
 
   let walletName;
-
   if (walletLoaded) {
     walletName = getWalletName();
   }

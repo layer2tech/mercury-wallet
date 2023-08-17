@@ -1,5 +1,5 @@
 import React from "react";
-import CopiedButton from "../CopiedButton";
+import CopiedButton from "../CopiedButton/CopiedButton";
 import copy_img from "../../images/icon2.png";
 
 const EmptyPanel = ({ text, textData, hasCopyBtn }) => {

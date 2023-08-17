@@ -34,7 +34,6 @@
 
 
 }
-
 .wizard-form.inputs .copy:focus {
     border: 1px solid var(--primary);
 }

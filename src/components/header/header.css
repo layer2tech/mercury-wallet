@@ -1,188 +1,163 @@
-.Header {
-    background-color: var(--primary);
-    height: 56px;
-    padding: 5px;
-    margin-bottom: 20px;
-    box-shadow: 0 0 8px var(--box-shadow);
-    color: var(--container);
-}
-
-.Header .block {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 100%;
-}
-
-.Header-logo {
-    height: 40px;
-    float: left;
-}
-
 .menu {
-    display: flex;
+  display: flex;
 }
 
 .modal-dialog {
-    transform: translate(0, -50%) !important;
-    top: 50%;
-    margin: 0 auto !important;
+  transform: translate(0, -50%) !important;
+  top: 50%;
+  margin: 0 auto !important;
 }
 
 .nav-item {
-    color: var(--container);
+  color: var(--container);
 }
 .nav-item i {
-    cursor: pointer;
+  cursor: pointer;
 }
-.nav-item i:hover  {
-    color: var(--container);
-
+.nav-item i:hover {
+  color: var(--container);
 }
 .hideBar p {
-    padding: 5px 10px;
-    font-size: 18px;
-    text-align: left;
-    color: var(--button-main-text);
-    margin: 0;
+  padding: 5px 10px;
+  font-size: 18px;
+  text-align: left;
+  color: var(--button-main-text);
+  margin: 0;
 }
 .hideBar .fa-close {
-    cursor: pointer;
-    position: absolute;
-    right: 15px;
-    bottom: 13px;
-    font-size: 15px;
-    color: var(--container);
-    opacity: 1;
+  cursor: pointer;
+  position: absolute;
+  right: 15px;
+  bottom: 13px;
+  font-size: 15px;
+  color: var(--container);
+  opacity: 1;
 }
 .hideBar .close {
-    position: relative;
+  position: relative;
 }
 .hideBar.disabled {
-    display: none;
+  display: none;
 }
 
 .Header .nav-link {
-    color: var(--container);
-    padding: 0;
-    margin-right: 14px;
+  color: var(--container);
+  padding: 0;
+  margin-right: 14px;
 }
 .hideBar {
-    position: absolute;
-    width: 100%;
-    margin-top: 0;
-    background-color: #F79325;
-    left: 0;
+  position: absolute;
+  width: 100%;
+  margin-top: 0;
+  background-color: #f79325;
+  left: 0;
 }
 .header-logout {
-    cursor: pointer;
+  cursor: pointer;
 }
-
 
 .dark-mode .Header .toggle-checkbox2 + .toggle-switch2:before {
-    left: 22px;
-    background-color: #2c2c2c;
+  left: 22px;
+  background-color: #2c2c2c;
 }
 .dark-mode .Header .toggle-checkbox2:checked + .toggle-switch2 {
-    background-color: #fff;
+  background-color: #fff;
 }
 .dark-mode .Header .toggle-checkbox2 + .toggle-switch2 {
-    background-color: #fff;
+  background-color: #fff;
 }
 .dark-mode .Header .toggle2:hover .toggle-switch2:before {
-    background: #2d2d2d;
+  background: #2d2d2d;
 }
-
 
 .Header .toggle-switch2 {
-    width: 45px;
-    height: 24px;
-    background-color: #2c2c2c;
+  width: 45px;
+  height: 24px;
+  background-color: #2c2c2c;
 }
 .Header label.toggle2 {
-    margin: 0;
-    padding: 0;
-    margin-right: 14px;;
+  margin: 0;
+  padding: 0;
+  margin-right: 14px;
 }
 .Header .toggle-switch2::before {
-    width: 20px;
-    height: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    transition: 0.3s;
+  width: 20px;
+  height: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: 0.3s;
 }
 
 .dark-mode .Header .toggle-checkbox2:checked + .toggle-switch2:before {
-    left: 22px;
-    background-color: #2c2c2c;
+  left: 22px;
+  background-color: #2c2c2c;
 }
 .dark-mode .Header .toggle-checkbox2:checked + .toggle-switch2 {
-    background-color: #fff;
+  background-color: #fff;
 }
 .dark-mode .Header .toggle2:hover .toggle-switch2:before {
-    background: #2d2d2d;
+  background: #2d2d2d;
 }
-
 
 .toggle-checkbox2 {
-    position: absolute;
-    visibility: hidden;
+  position: absolute;
+  visibility: hidden;
 }
-  
+
 .toggle2-label2 {
-    margin-left: 8px;
-    font-weight: bold;
-    font-size: 16px;
-    position: relative;
-    top: 2px;
+  margin-left: 8px;
+  font-weight: bold;
+  font-size: 16px;
+  position: relative;
+  top: 2px;
 }
 
 .toggle2 {
-    cursor: pointer;
-    padding: 0;
-    display: inline-block;
+  cursor: pointer;
+  padding: 0;
+  display: inline-block;
 }
-  
+
 .toggle2-sm {
-    cursor: pointer;
-    padding: 0;
-    display: inline-block;
-    zoom: 0.65;
+  cursor: pointer;
+  padding: 0;
+  display: inline-block;
+  zoom: 0.65;
 }
-  
+
 .toggle-switch2 {
-    display: inline-block;
-    background: var(--idle);
-    border-radius: 16px;
-    width: 58px;
-    height: 32px;
-    position: relative;
-    vertical-align: middle;
-    transition: background 0.25s;
+  display: inline-block;
+  background: var(--idle);
+  border-radius: 16px;
+  width: 58px;
+  height: 32px;
+  position: relative;
+  vertical-align: middle;
+  transition: background 0.25s;
 }
-  
+
 .toggle2 input.toggle-checkbox2 {
-    width: 0;
-    height: 0;
-    display: none;
+  width: 0;
+  height: 0;
+  display: none;
 }
-  
+
 .toggle-switch2:before,
 .toggle-switch2:after {
-    content: '';
+  content: "";
 }
 .toggle-switch2:before {
-    display: block;
-    background: #fff;
-    border-radius: 50%;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
-    width: 24px;
-    height: 24px;
-    position: absolute;
-    top: 4px;
-    left: 4px;
-    transition: left 0.25s;
+  display: block;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  transition: left 0.25s;
 }
 .toggle2:hover .toggle-switch2:before {
-    background: linear-gradient(to bottom, #fff 0%, #fff 100%);
+  background: linear-gradient(to bottom, #fff 0%, #fff 100%);
 }
