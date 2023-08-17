@@ -1,5 +1,5 @@
 'use strict';
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux'
 import {
   callDepositInit, callDepositConfirm, setNotification,
@@ -24,7 +24,6 @@ import close_img from "../../images/close-icon.png";
 import '../../containers/Deposit/Deposit.css';
 import '../index.css';
 import { Spinner } from 'react-bootstrap';
-import { delay } from '../../wallet/mercury/info_api';
 
 const keyIcon = (
   <svg

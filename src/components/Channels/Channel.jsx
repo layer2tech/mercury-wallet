@@ -5,7 +5,7 @@ import "./Channel.css";
 import { ProgressBar } from "react-bootstrap";
 import lightningLogo from "../../images/lightning_logo.png";
 import { Link, useHistory } from "react-router-dom";
-import { CopiedButton } from '../';
+import { CopiedButton } from '..';
 import copy_img from "../../images/icon2.png";
 import { CHANNEL_STATUS } from "../../wallet/channel";
 

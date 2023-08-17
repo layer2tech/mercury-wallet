@@ -39,7 +39,7 @@ import {
 import { Wallet } from "../wallet";
 import { ACTION } from "../activity_log";
 import { TransferFinalizeData } from "../types";
-import WrappedLogger from "../../wrapped_logger";
+import WrappedLogger from "../../WrappedLogger";
 
 let bitcoin = require("bitcoinjs-lib");
 let cloneDeep = require("lodash.clonedeep");

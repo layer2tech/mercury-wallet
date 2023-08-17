@@ -2,7 +2,7 @@
 
 "use strict";
 import { Network } from "bitcoinjs-lib/types/networks";
-import WrappedLogger from "../wrapped_logger";
+import WrappedLogger from "../WrappedLogger";
 import { ElectrumClientConfig } from "./electrum";
 
 const NETWORK_CONFIG = require("../network.json");

@@ -1,4 +1,4 @@
-import WrappedLogger from "./wrapped_logger";
+import WrappedLogger from "./WrappedLogger";
 
 declare const window: any;
 export let log: any;

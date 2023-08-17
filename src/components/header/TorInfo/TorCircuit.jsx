@@ -16,7 +16,7 @@ import {
 import "./TorCircuit.css";
 import TorCircuitNode from "./TorCircuitNode";
 import { handleNetworkError } from "../../../error";
-import WrappedLogger from "../../../wrapped_logger";
+import WrappedLogger from "../../../WrappedLogger";
 import { NETWORK_TYPE } from "../../../wallet/wallet";
 import { defaultWalletConfig } from "../../../wallet/config";
 import { Spinner } from "react-bootstrap";

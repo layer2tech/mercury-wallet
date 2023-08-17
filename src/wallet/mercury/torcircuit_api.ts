@@ -2,7 +2,7 @@
 /* TODO - CHECK FOR TYPES */
 import { HttpClient, MockHttpClient, GET_ROUTE } from "..";
 import { handleNetworkError } from "../../error";
-import WrappedLogger from "../../wrapped_logger";
+import WrappedLogger from "../../WrappedLogger";
 
 let types = require("../types");
 let typeforce = require("typeforce");

@@ -82,7 +82,7 @@ import {
 } from "./mercury/torcircuit_api";
 import { Mutex } from "async-mutex";
 import { handleErrors } from "../error";
-import WrappedLogger from "../wrapped_logger";
+import WrappedLogger from "../WrappedLogger";
 import Semaphore from "semaphore-async-await";
 import isElectron from "is-electron";
 import { TokenData } from "./statecoin";

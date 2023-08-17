@@ -23,7 +23,7 @@ import {
   TransferMsg4,
 } from "./mercury/transfer";
 import { WithdrawMsg2 } from "./mercury/withdraw";
-import WrappedLogger from "../wrapped_logger";
+import WrappedLogger from "../WrappedLogger";
 
 // Logger import.
 // Node friendly importing required for Jest tests.

@@ -23,7 +23,7 @@ import * as bitcoin from "bitcoinjs-lib";
 import { mutex } from "../wallet/electrum";
 import { SWAP_STATUS, UI_SWAP_STATUS } from "../wallet/swap/swap_utils";
 import { handleNetworkError } from "../error";
-import WrappedLogger from "../wrapped_logger";
+import WrappedLogger from "../WrappedLogger";
 import { NETWORK_TYPE, deleteChannelByAddr } from "../wallet/wallet";
 import {
   LDKClient,

@@ -33,7 +33,7 @@ import "../Send/Send.css";
 import { Transaction } from "bitcoinjs-lib";
 import MultipleReceive from "../MultipleReceive/MultipleReceive";
 import { setIntervalIfOnline } from "../../features/WalletDataSlice";
-import WrappedLogger from "../../wrapped_logger";
+import WrappedLogger from "../../WrappedLogger";
 import PageHeader from "../PageHeader/PageHeader";
 
 let addr_index = -2;

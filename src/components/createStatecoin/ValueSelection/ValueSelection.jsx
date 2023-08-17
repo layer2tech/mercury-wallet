@@ -9,7 +9,7 @@ import "../../../containers/Deposit/Deposit.css";
 import { callGetFeeInfo } from "../../../features/WalletDataSlice";
 import { handleErrors } from "../../../error";
 import { useSelector } from "react-redux";
-import WrappedLogger from "../../../wrapped_logger";
+import WrappedLogger from "../../../WrappedLogger";
 
 // Logger import.
 // Node friendly importing required for Jest tests.

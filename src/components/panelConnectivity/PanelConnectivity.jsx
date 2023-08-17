@@ -21,7 +21,7 @@ import {
 import "./PanelConnectivity.css";
 import "../index.css";
 import RadioButton from "./RadioButton";
-import WrappedLogger from "../../wrapped_logger";
+import WrappedLogger from "../../WrappedLogger";
 import DropdownArrow from "../DropdownArrow/DropdownArrow";
 import { defaultWalletConfig } from "../../wallet/config";
 import { NETWORK_TYPE } from "../../wallet/wallet";

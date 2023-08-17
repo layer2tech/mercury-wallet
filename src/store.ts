@@ -11,7 +11,7 @@ import {
 } from "./wallet";
 import { OutPoint } from "./wallet/mercury/info_api";
 import { SWAP_STATUS } from "./wallet/swap/swap_utils";
-import WrappedLogger from "./wrapped_logger";
+import WrappedLogger from "./WrappedLogger";
 let cloneDeep = require("lodash.clonedeep");
 import { Token } from "./wallet/statecoin";
 

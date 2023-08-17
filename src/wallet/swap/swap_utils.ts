@@ -26,7 +26,7 @@ import { Wallet } from "../wallet";
 import { MockWasm } from "..";
 //import { Swap } from 'client-wasm';
 import Swap from "./swap";
-import WrappedLogger from "../../wrapped_logger";
+import WrappedLogger from "../../WrappedLogger";
 
 let bitcoin = require("bitcoinjs-lib");
 let types = require("../types");
