@@ -218,7 +218,7 @@ const PanelConnectivity = (props) => {
   };
 
   //function shortens urls to fit better with styling
-  function shortenURLs(url) {
+  const shortenURLs = (url) => {
     if (url == null) {
       return url;
     }

@@ -46,7 +46,7 @@ const CountdownTimer = (props) => {
 
     const digits = (number) => number<10 ? ("0"+number):(number)
 
-    function runClock(){
+    const runClock = () => {
         const date = Date.now()/1000;
         const countdown = props.swapTime - date
         
@@ -91,12 +91,12 @@ const CountdownTimer = (props) => {
         return `${now.h0}${now.h1}:${now.m0}${now.m1}:${now.s0}${now.s1}`
     }
 
-    function calculateTimeFraction() {
+    const calculateTimeFraction = () => {
         let rawTimeFraction = (props.swapTime - (Date.now()/1000)) / initTime; // 21600 = Total time till expiry
         return rawTimeFraction - ((1 / initTime) * (1 - rawTimeFraction));
     }
 
-    function circleDasharray() {
+    const circleDasharray = () => {
       let timeFraction = calculateTimeFraction()*FULL_DASH_ARRAY
 
       if((calculateTimeFraction()*FULL_DASH_ARRAY) <= 0){
@@ -109,7 +109,7 @@ const CountdownTimer = (props) => {
       return circleDasharray
     }
 
-    function remainingPathColor(timeLeft) {
+    const remainingPathColor = (timeLeft) => {
       const { alert, warning, info, finish } = colourCodes;
 
       let colour

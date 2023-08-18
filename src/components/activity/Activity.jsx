@@ -18,7 +18,7 @@ import EmptyCoinDisplay from '../Coins/EmptyCoinDisplay/EmptyCoinDisplay';
 const Activity = () => {
 	let activity_data = callGetActivityLogItems();
 
-	function shortenString(long) {
+	const shortenString = (long) => {
 		let short = ""
 		if (long != null) {
 			if (long.length > 6) {
@@ -30,7 +30,7 @@ const Activity = () => {
 		return short
 	}
 
-	function swapOutPointString(funding_out_point, date) {
+	const swapOutPointString = (funding_out_point, date) => {
 		let outPoint = swapOutPoint(funding_out_point, date);
 		if (!outPoint){
 			return "Data not found"
@@ -39,7 +39,7 @@ const Activity = () => {
 		}
 	}
 
-	function swapOutPoint(funding_out_point, date) {
+	const swapOutPoint = (funding_out_point, date) => {
 		let dateIndexArray = activity_data.filter(item =>
 			item.funding_txid === funding_out_point.txid && 
 			item.funding_txvout === funding_out_point.vout &&

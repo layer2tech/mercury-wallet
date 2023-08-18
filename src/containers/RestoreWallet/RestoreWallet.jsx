@@ -21,7 +21,7 @@ import isElectron from "is-electron";
 
 let bip39 = require("bip39");
 
-function isInDesiredForm(str) {
+const isInDesiredForm = (str) => {
   var n = Math.floor(Number(str));
   return n !== Infinity && String(n) === str && n >= 0;
 }

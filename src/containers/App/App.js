@@ -53,7 +53,7 @@ const App = () => {
 
   const version = require("../../../package.json").version;
 
-  async function darkMode() {
+  const darkMode = async () => {
     if (dark_mode === "1") {
       if (window.darkMode !== undefined) {
         //await window.darkMode.on(); - await window doesn't work on browser - find alternative

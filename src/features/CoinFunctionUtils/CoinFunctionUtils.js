@@ -23,7 +23,6 @@ const validExpiryTime = (expiry_data) => {
     return true;
 }
 
-
 // Convert expiry_data to string displaying months or days left
 const expiry_time_to_string = (expiry_data) => {
 return expiry_data.months > 0 ? expiry_data.months + " months" : expiry_data.days + " days";
@@ -34,7 +33,6 @@ const getRemainingDays = (numberOfDays) => {
     let daysDisplay = days > 0 ? days + (days === 1 ? " day" : " days") : "";
     return daysDisplay;
 }
-
 
 export const displayExpiryTime = (expiry_data, show_days = false) => {
     if (validExpiryTime(expiry_data)) {
@@ -47,8 +45,7 @@ export const displayExpiryTime = (expiry_data, show_days = false) => {
     return <Spinner animation="border" variant="primary" size='sm'></Spinner>;
 }
 
-
-  // data to display in privacy related sections
+// data to display in privacy related sections
 export  const getPrivacyScoreDesc = (coin) => {
 
     let anon_set = coin?.anon_set ? coin.anon_set : 0
@@ -64,8 +61,6 @@ export  const getPrivacyScoreDesc = (coin) => {
         rounds_msg: " this statecoin was created in this wallet",
       }
     }
-
-
 
     if (anon_set) {
       return {
@@ -87,8 +82,6 @@ export  const getPrivacyScoreDesc = (coin) => {
       rounds_msg: " number of swap rounds completed",
     }
 }
-
-
 
 export const coinSort = (sortCoin) => {
     return (a, b) => {
