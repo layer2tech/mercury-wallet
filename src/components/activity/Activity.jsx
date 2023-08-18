@@ -13,6 +13,7 @@ import withrowIcon from '../../assets/images/withrow-icon.png';
 import swapIcon from '../../assets/images/swap-icon-grey.png';
 import './Activity.css';
 import { ActivityLog } from '../../wallet/activity_log';
+import EmptyCoinDisplay from '../Coins/EmptyCoinDisplay/EmptyCoinDisplay';
 
 const Activity = () => {
 	let activity_data = callGetActivityLogItems();

@@ -1,11 +1,10 @@
-import React from "react";
 import reducers from "../../reducers";
 import { render } from "./test-utils";
 import { screen } from "@testing-library/dom";
-import SwapStatus from "../../components/coins/SwapStatus/SwapStatus";
+import SwapStatus from "../../components/Coins/SwapStatus/SwapStatus";
 import { configureStore } from "@reduxjs/toolkit";
 import { makeDummyStatecoins } from "./test_data.js";
-import { coinSort } from "../../components/coins/CoinFunctionUtils/CoinFunctionUtils";
+import { coinSort } from "../../components/Coins/CoinFunctionUtils/CoinFunctionUtils";
 
 let cloneDeep = require("lodash.clonedeep");
 

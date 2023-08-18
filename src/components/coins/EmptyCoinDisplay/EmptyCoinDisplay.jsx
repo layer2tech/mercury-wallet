@@ -2,6 +2,8 @@
 import { Link } from 'react-router-dom';
 import '../Coins.css';
 
+import FilterBy from '../FilterBy/FilterBy';
+
 const EmptyCoinDisplay = (props) => {
     return(
         <div className="empty-coin-list">

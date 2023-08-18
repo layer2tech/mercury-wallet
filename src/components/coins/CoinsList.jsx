@@ -1,4 +1,8 @@
 'use strict';
+import './Coins.css';
+import '../index.css';
+import './DeleteCoin/DeleteCoin.css'
+
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {useLocation} from 'react-router-dom';
@@ -17,17 +21,17 @@ import {
   callClearSwapGroupInfo,
   callGetSwapGroupInfo
 } from '../../features/WalletDataSlice';
-
+import { coinSort } from './CoinFunctionUtils/CoinFunctionUtils';
 
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
-
-import './Coins.css';
-import '../index.css';
-import './DeleteCoin/DeleteCoin.css'
-
 import {
   callDoSwap
 } from "../../features/WalletDataSlice";
+import EmptyCoinDisplay from './EmptyCoinDisplay/EmptyCoinDisplay';
+import FilterBy from './FilterBy/FilterBy';
+import SortBy from './SortBy/SortBy';
+import { getPrivacyScoreDesc, getParticipantsByCoinValue } from './CoinFunctionUtils/CoinFunctionUtils';
+import Coin from './Coin/Coin';
 
 
 const TESTING_MODE = require("../../settings.json").testing_mode;

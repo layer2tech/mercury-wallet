@@ -1,9 +1,8 @@
 'use strict';
-import { Link } from 'react-router-dom';
-
-import FilterBy from '../../Coins/FilterBy/FilterBy';
-
 import '../../Coins/Coins.css';
+
+import { Link } from 'react-router-dom';
+import FilterBy from '../../Coins/FilterBy/FilterBy';
 
 const EmptyChannelDisplay = (props) => {
     return(

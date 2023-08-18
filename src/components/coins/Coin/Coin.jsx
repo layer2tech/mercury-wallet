@@ -28,7 +28,7 @@ import { HIDDEN } from "../../../wallet/statecoin";
 import Tooltip from "../../Tooltips/Tooltip";
 import ImgAndInfo from "../../ImgAndInfo/ImgAndInfo";
 import AddressDisplay from "../../AddressDisplay/AddressDisplay";
-import ProgressContainer from "../ProgressContainer";
+import ProgressContainer from "../ProgressContainer/ProgressContainer";
 import AutoSwapToggle from "../../AutoSwapToggle/AutoSwapToggle";
 import isElectron from "is-electron";
 
