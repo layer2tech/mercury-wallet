@@ -1,7 +1,7 @@
 "use strict";
 import "./DepositToken.css";
 import { useState, useEffect } from "react";
-import CopiedButton from "../CopiedButton";
+import CopiedButton from "../CopiedButton/CopiedButton";
 import QRCode from "qrcode.react";
 import { useDispatch, useSelector } from "react-redux";
 import { fromSatoshi } from "../../wallet";
@@ -12,7 +12,7 @@ import {
   setError,
   setToken,
 } from "../../features/WalletDataSlice";
-import close_img from "../../images/close-icon.png";
+import close_img from "../../assets/images/close-icon.png";
 import AddressInput from "../Inputs/AddressInput";
 import { Spinner } from "react-bootstrap";
 // Add Animation for when button clicked
