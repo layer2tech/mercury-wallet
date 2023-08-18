@@ -104,7 +104,7 @@ const Header = (props) => {
   };
 
   return (
-    <div className="bg-blue-600 dark:bg-blue-900 h-12 p-1 mb-5 text-gray-900">
+    <div className="Header bg-blue-600 dark:bg-blue-900 h-12 p-1 mb-5 text-gray-900">
       <div className="flex justify-between items-center h-full">
         <Link className="h-10 float-left" to={walletLoaded ? "/home" : "/"}>
           <Logo />
@@ -120,9 +120,9 @@ const Header = (props) => {
           )}
 
           <div title="Light/Dark mode">
-            <label className="cursor-pointer p-0 inline-block">
+            <label className="toggle2">
               <input
-                className="absolute invisible"
+                className="toggle-checkbox2"
                 type="checkbox"
                 onChange={activeDarkMode}
                 checked={isElectron ? isDarkMode : !localStorage.dark_mode}
