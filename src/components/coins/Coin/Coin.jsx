@@ -1,30 +1,38 @@
 "use strict";
-import React, {useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { STATECOIN_STATUS, BACKUP_STATUS, ACTION } from "../../../wallet";
-import close_img from "../../../assets/images/close-icon.png";
-import statechainIcon from "../../../assets/images/statechainIcon.png";
-import timeIcon from "../../../assets/images/time.png";
-import awaitingIcon from "../../../assets/images/time_left.png";
-import duplicateIcon from "../../../assets/images/plus-black.png";
+import close_img from "../../../images/close-icon.png";
+import copy_img from "../../../images/icon2.png";
+import scAddrIcon from "../../../images/sc_address_logo.png";
+import statechainIcon from "../../../images/statechainIcon.png";
+import timeIcon from "../../../images/time.png";
+import awaitingIcon from "../../../images/time_left.png";
+import duplicateIcon from "../../../images/plus-black.png";
 import { MINIMUM_DEPOSIT_SATOSHI, fromSatoshi } from "../../../wallet/util";
-
-import { Spinner } from "react-bootstrap";
+import { DAYS_WARNING, SWAP_STATUS_INFO } from "../CoinsList";
+import { ProgressBar, Spinner } from "react-bootstrap";
 import Moment from "react-moment";
 import { useLocation } from "react-router-dom";
-
+import SwapStatus from "../SwapStatus/SwapStatus";
 import {
   callGetActivityDate,
+  callGetActivityLog,
   callGetActivityLogItems,
+  callGetNetwork,
+  callGetStateCoin,
   callRemoveCoin,
   callSetStatecoinSpent,
   setError,
   setShowDetails,
   setWarning,
 } from "../../../features/WalletDataSlice";
-import { CoinStatus} from "../..";
+import { CoinStatus, CopiedButton } from "../..";
 import { HIDDEN } from "../../../wallet/statecoin";
-
+import {
+  displayExpiryTime,
+  getPrivacyScoreDesc,
+} from "../CoinFunctionUtils/CoinFunctionUtils";
 import Tooltip from "../../Tooltips/Tooltip";
 import ImgAndInfo from "../../ImgAndInfo/ImgAndInfo";
 import AddressDisplay from "../../AddressDisplay/AddressDisplay";
@@ -228,7 +236,7 @@ const Coin = (props) => {
           swapPage || sendPage || withdrawPage ? props.coin_data.status : ""
         } ${isSelected(props.coin_data.shared_key_id) ? "selected" : ""}`}
         onClick={(event) => {
-          if (event.target.className.includes("toggle")) {
+          if (typeof event.target.className === 'string' && event.target.className.includes("toggle")) {
             return;
           }
           if (
