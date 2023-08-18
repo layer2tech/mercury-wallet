@@ -11,8 +11,8 @@ import {
   initActivityLogItems,
 } from "../../features/WalletDataSlice";
 import { CreateWizardForm } from "../../components";
-import eyeIcon from "../../images/eye-icon.svg";
-import eyeIconOff from "../../images/eye-icon-off.svg";
+import eyeIcon from "../../assets/images/eye-icon.svg";
+import eyeIconOff from "../../assets/images/eye-icon-off.svg";
 import { Storage } from "../../store";
 import { DEFAULT_NETWORK_TYPE, parseBackupData } from "../../wallet/wallet";
 

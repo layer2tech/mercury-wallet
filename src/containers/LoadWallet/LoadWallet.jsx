@@ -12,8 +12,8 @@ import {
   loadWalletFromMemory,
   walletLoadConnection,
 } from "../../features/WalletDataSlice";
-import eyeIcon from "../../images/eye-icon.svg";
-import eyeIconOff from "../../images/eye-icon-off.svg";
+import eyeIcon from "../../assets/images/eye-icon.svg";
+import eyeIconOff from "../../assets/images/eye-icon-off.svg";
 import "./LoadWallet.css";
 import { STATECOIN_STATUS } from "../../wallet";
 

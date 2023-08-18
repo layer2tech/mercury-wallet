@@ -1,22 +1,21 @@
 "use strict";
+import "../index.css";
+import "./PanelCoinsActivity.css";
+
 import { useState } from "react";
 import { Tabs, Tab } from "react-bootstrap";
 import { useSelector } from "react-redux";
 import { STATECOIN_STATUS } from "../../wallet/statecoin";
 import { Activity, CoinsList } from "..";
-
-import "./PanelCoinsActivity.css";
-import "../index.css";
 import { getChannels, WALLET_MODE } from "../../features/WalletDataSlice";
-import EmptyCoinDisplay from "../coins/EmptyCoinDisplay/EmptyCoinDisplay";
 import ChannelList from "../Channels/ChannelList";
 
 const PanelCoinsActivity = (props) => {
+
   const [selectedCoins, setSelectedCoins] = useState([]); // store selected coins shared_key_id
   const [selectedChannels, setSelectedChannels] = useState([]);
-
   const [refreshSwapGroupInfo, setRefreshSwapGroupInfo] = useState(false);
-
+  
   const { filterBy, walletMode } = useSelector((state) => state.walletData);
 
   const defaultTabTitle =

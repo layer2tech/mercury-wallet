@@ -23,7 +23,7 @@ import {
   updateInSwapValues,
   checkSwapAvailability
 } from "../../features/WalletDataSlice";
-// import SwapIcon from '../../images/swap_icon-blue.png'
+// import SwapIcon from '../assets/images/swap_icon-blue.png'
 // import swapIcon from '../../components/SendModal/icons';
 import { fromSatoshi } from '../../wallet';
 import './Swap.css';

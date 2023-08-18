@@ -2,27 +2,27 @@ import { Button, Modal } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { fromSatoshi, STATECOIN_STATUS } from "../../wallet";
 
-import walleticon from "../../images/walletIcon.png";
-import statechainIcon from "../../images/statechainIcon.png";
-import descripIcon from "../../images/description.png";
-import utx from "../../images/utxo_id.png";
-import time from "../../images/time_left.png";
-import calendar from "../../images/calendar.png";
-import swapNumber from "../../images/swap-number.png";
-import hashIcon from "../../images/hashtag.png";
-import hexIcon from "../../images/hexagon.png";
-import icon2 from "../../images/icon2.png";
+import walleticon from "../../assets/images/walletIcon.png";
+import statechainIcon from "../../assets/images/statechainIcon.png";
+import descripIcon from "../../assets/images/description.png";
+import utx from "../../assets/images/utxo_id.png";
+import time from "../../assets/images/time_left.png";
+import calendar from "../../assets/images/calendar.png";
+import swapNumber from "../../assets/images/swap-number.png";
+import hashIcon from "../../assets/images/hashtag.png";
+import hexIcon from "../../assets/images/hexagon.png";
+import icon2 from "../../assets/images/icon2.png";
 
 import "./InfoModal.css";
-import SwapStatus from "../coins/SwapStatus/SwapStatus";
-import { SWAP_STATUS_INFO } from "../coins/CoinsList";
+import SwapStatus from "../Coins/SwapStatus/SwapStatus";
+import { SWAP_STATUS_INFO } from "../Coins/CoinsList";
 import QRCodeGenerator from "../QRCodeGenerator/QRCodeGenerator";
 import CoinStatus from "../CoinStatus/CoinStatus";
-import { displayExpiryTime } from "../coins/CoinFunctionUtils/CoinFunctionUtils";
+import { displayExpiryTime } from "../Coins/CoinFunctionUtils/CoinFunctionUtils";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import Moment from "react-moment";
 import CopiedButton from "../CopiedButton/CopiedButton";
-import CoinDescription from "../inputs/CoinDescription/CoinDescription";
+import CoinDescription from "../Inputs/CoinDescription/CoinDescription";
 import {
   callAddDescription,
   callGetConfig,

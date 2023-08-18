@@ -1,10 +1,10 @@
 import { withRouter, Redirect } from "react-router-dom";
 import PageHeader from "../PageHeader/PageHeader";
 import { useState } from "react";
-import plus from "../../images/plus-deposit.png";
-import btc_img from "../../images/icon1.png";
-import arrow_img from "../../images/scan-arrow.png";
-import copy_img from "../../images/icon2.png";
+import plus from "../../assets/images/plus-deposit.png";
+import btc_img from "../../assets/images/icon1.png";
+import arrow_img from "../../assets/images/scan-arrow.png";
+import copy_img from "../../assets/images/icon2.png";
 import { CopiedButton, AddressInput, ConfirmPopup } from "../../components";
 import "../CreateWalletInfo/CreateWalletInfo.css";
 import "./DepositLightning.css";
@@ -19,7 +19,7 @@ import {
   setError,
 } from "../../features/WalletDataSlice";
 import { useDispatch, useSelector } from "react-redux";
-import closeIcon from "../../images/close-icon.png";
+import closeIcon from "../../assets/images/close-icon.png";
 import InvoiceOptions from "../../components/InvoiceOptions/InvoiceOptions";
 import { getBIP32forBtcAddress } from "../../wallet/wallet";
 import InvoiceModal from "../../components/InvoiceModal/InvoiceModal";

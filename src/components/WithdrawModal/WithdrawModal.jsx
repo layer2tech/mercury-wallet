@@ -1,7 +1,7 @@
 import { Modal, Spinner } from 'react-bootstrap';
 import CopiedButton from '../CopiedButton/CopiedButton';
 import { useEffect, useState } from 'react';
-import icon2 from "../../images/icon2.png";
+import icon2 from "../../assets/images/icon2.png";
 import {useSelector, useDispatch} from 'react-redux';
 import {
   setShowWithdrawPopup,

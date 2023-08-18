@@ -1,5 +1,5 @@
 "use strict";
-import walletIcon from "../../images/walletIcon.png";
+import walletIcon from "../../assets/images/walletIcon.png";
 import { withRouter, Redirect } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";

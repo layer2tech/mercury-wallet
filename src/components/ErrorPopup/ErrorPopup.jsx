@@ -1,12 +1,10 @@
 "use strict";
-import React from "react";
+import "./ErrorPopup.css";
 import { Modal } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { setErrorSeen } from "../../features/WalletDataSlice";
 
-import "./index.css";
-
-function ErrorPopup() {
+const ErrorPopup = () => {
   const dispatch = useDispatch();
   const error_dialogue = useSelector(
     (state) => state.walletData

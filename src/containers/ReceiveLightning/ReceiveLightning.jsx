@@ -1,5 +1,5 @@
 "use strict";
-import arrow from "../../images/arrow-up.png";
+import arrow from "../../assets/images/arrow-up.png";
 import { withRouter, Redirect } from "react-router-dom";
 import {
   isWalletLoaded,

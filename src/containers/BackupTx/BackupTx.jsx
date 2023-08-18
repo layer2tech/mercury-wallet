@@ -14,9 +14,9 @@ import { isWalletLoaded,
   callGetStateCoin} from '../../features/WalletDataSlice';
 import { StdButton, CopiedButton, Tutorial, CoinsList} from "../../components";
 
-import settings from "../../images/settings.png";
-import icon2 from "../../images/icon2.png";
-import info from "../../images/info.png";
+import settings from "../../assets/images/settings.png";
+import icon2 from "../../assets/images/icon2.png";
+import info from "../../assets/images/info.png";
 import './BackupTx.css';
 
 const DEFAULT_TX_DATA = {tx_backup_hex:"",priv_key_hex:"",key_wif:"",expiry_data:{blocks:"",days:"",months:""}};

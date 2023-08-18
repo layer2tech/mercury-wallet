@@ -176,7 +176,7 @@
 }
 
 .minus {
-   background-image: url("../../images/decrease.png");
+   background-image: url("../../assets/images/decrease.png");
     background-repeat: no-repeat;
     background-size: 30px;
     background-position: center center;
@@ -220,7 +220,7 @@ input.quantity {
     width: 90px !important;
 }
 .plus {
-    background-image: url("../../images/increase.png");
+    background-image: url("../../assets/images/increase.png");
     background-repeat: no-repeat;
     background-position: center center;
     background-size: 30px;

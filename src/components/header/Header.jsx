@@ -1,4 +1,5 @@
 "use strict";
+import "./Header.css";
 import { useEffect } from "react";
 import { Link, withRouter } from "react-router-dom";
 import { Logo, Settings, Help, Logout } from "./HeaderIcons";
@@ -16,7 +17,6 @@ import {
   getNetworkType,
   setLightningLoaded,
 } from "../../features/WalletDataSlice";
-import "./header.css";
 import TorCircuit from "./TorInfo/TorCircuit";
 import { useDispatch, useSelector } from "react-redux";
 import WarningPopup from "../WarningPopUp/WarningPopUp";

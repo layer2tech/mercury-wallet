@@ -1,15 +1,15 @@
 'use strict';
-import statechainIcon from '../../images/statechainIcon.png';
-import lightningLogo from '../../images/lightning_logo.png'
-import minusIcon from '../../images/minus.svg'
-import pluseIcon from '../../images/pluseIcon.png';
-import swapIcon from '../../images/swap-icon.png';
-import arrowUp from '../../images/arrow-up.png';
-import arrowDown from '../../images/arrow-down.png';
+import statechainIcon from '../../assets/images/statechainIcon.png';
+import lightningLogo from '../../assets/images/lightning_logo.png'
+import minusIcon from '../../assets/images/minus.svg'
+import pluseIcon from '../../assets/images/pluseIcon.png';
+import swapIcon from '../../assets/images/swap-icon.png';
+import arrowUp from '../../assets/images/arrow-up.png';
+import arrowDown from '../../assets/images/arrow-down.png';
 
 import './PanelControl.css';
 import '../index.css';
-import RouterButton from '../buttons/RouterButton/RouterButton';
+import RouterButton from '../Buttons/RouterButton/RouterButton';
 import MainHeader from '../MainHeader/MainHeader';
 import { WALLET_MODE } from '../../features/WalletDataSlice';
 import { useSelector } from 'react-redux';

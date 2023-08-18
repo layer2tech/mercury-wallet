@@ -1,12 +1,12 @@
 "use strict";
-import key from "../../images/key-blue-img.png";
-import restore from "../../images/restore-red-img.png";
-import secure from "../../images/secure-blue-img.png";
-import store_img from "../../images/store-red-img.png";
+import key from "../../assets/images/key-blue-img.png";
+import restore from "../../assets/images/restore-red-img.png";
+import secure from "../../assets/images/secure-blue-img.png";
+import store_img from "../../assets/images/store-red-img.png";
 import { useEffect, useState } from "react";
 import { Link, withRouter } from "react-router-dom";
 import "./CreateWalletInfo.css";
-import check from "../../images/icon-action-check_circle.png";
+import check from "../../assets/images/icon-action-check_circle.png";
 import {
   callSetArgsHasTestnet,
   setNetwork,

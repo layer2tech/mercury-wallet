@@ -1,4 +1,6 @@
 'use strict';
+import '../index.css';
+
 import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux'
 import {
@@ -14,15 +16,12 @@ import {
 import { fromSatoshi } from '../../wallet'
 import { CopiedButton } from '..'
 import QRCodeGenerator from '../QRCodeGenerator/QRCodeGenerator'
-import CoinDescription from '../inputs/CoinDescription/CoinDescription.js';
-
-import btc_img from "../../images/icon1.png";
-import copy_img from "../../images/icon2.png";
-import arrow_img from "../../images/scan-arrow.png";
-import close_img from "../../images/close-icon.png";
-
+import CoinDescription from '../Inputs/CoinDescription/CoinDescription';
+import btc_img from "../../assets/images/icon1.png";
+import copy_img from "../../assets/images/icon2.png";
+import arrow_img from "../../assets/images/scan-arrow.png";
+import close_img from "../../assets/images/close-icon.png";
 import '../../containers/Deposit/Deposit.css';
-import '../index.css';
 import { Spinner } from 'react-bootstrap';
 
 const keyIcon = (

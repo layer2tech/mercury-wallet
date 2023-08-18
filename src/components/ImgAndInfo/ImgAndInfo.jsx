@@ -1,4 +1,4 @@
-import Tooltip from "../tooltips/Tooltip"
+import Tooltip from "../Tooltips/Tooltip"
 
 const ImgAndInfo = ({imgsrc1, imgsrc2, bClass, 
     boldText, condition, subText, imgSubText,

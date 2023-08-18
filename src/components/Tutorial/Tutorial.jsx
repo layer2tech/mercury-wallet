@@ -1,6 +1,6 @@
 "use strict";
 import { useDispatch } from "react-redux";
-import VideoPlaceholder from "../../images/video-placeholder.png";
+import VideoPlaceholder from "../../assets/images/video-placeholder.png";
 import {
   callUpdateConfig,
   setNotification,

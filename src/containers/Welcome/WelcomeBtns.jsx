@@ -1,6 +1,6 @@
-import plus from "../../images/plus-black.png";
-import restore from "../../images/restore-img.png";
-import check from "../../images/icon-action-check_circle.png";
+import plus from "../../assets/images/plus-black.png";
+import restore from "../../assets/images/restore-img.png";
+import check from "../../assets/images/icon-action-check_circle.png";
 
 const WelcomeButton = ({ text, image, isChecked, onClick }) => {
   return (

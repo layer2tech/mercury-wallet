@@ -1,5 +1,5 @@
 "use strict";
-import arrow from "../../images/arrow-accordion.png";
+import arrow from "../../assets/images/arrow-accordion.png";
 import "./DropdownArrow.css"
 
 const DropdownArrow = ({toggleContent: toggleContent, isToggleOn: isToggleOn}) => {

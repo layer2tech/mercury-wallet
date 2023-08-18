@@ -22,10 +22,10 @@ import { fromSatoshi } from "../../wallet";
 
 import Loading from "../../components/Loading/Loading";
 
-import arrow from "../../images/arrow-up.png";
-import icon2 from "../../images/icon2.png";
-import closeIcon from "../../images/close-icon.png";
-import info from "../../images/info.png";
+import arrow from "../../assets/images/arrow-up.png";
+import icon2 from "../../assets/images/icon2.png";
+import closeIcon from "../../assets/images/close-icon.png";
+import info from "../../assets/images/info.png";
 
 import "./Receive.css";
 import "../Send/Send.css";

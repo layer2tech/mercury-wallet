@@ -2,9 +2,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import eyeIcon from "../../images/eye-icon.svg";
-import eyeIconOff from "../../images/eye-icon-off.svg";
-import CloseIcon from "../../images/close-icon.png";
+import eyeIcon from "../../assets/images/eye-icon.svg";
+import eyeIconOff from "../../assets/images/eye-icon-off.svg";
+import CloseIcon from "../../assets/images/close-icon.png";
 import TermsConditions from "../TermsConditions/TermsConditions";
 import "./CreateWizardForm.css";
 import { NETWORK_TYPE } from "../../wallet/wallet";

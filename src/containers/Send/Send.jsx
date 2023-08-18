@@ -11,7 +11,7 @@ import {
   callProofKeyFromXpub,
   callSumStatecoinValues
 } from '../../features/WalletDataSlice';
-import arrow from "../../images/arrow-up.png"
+import arrow from "../../assets/images/arrow-up.png"
 import './Send.css';
 import PageHeader from '../PageHeader/PageHeader';
 

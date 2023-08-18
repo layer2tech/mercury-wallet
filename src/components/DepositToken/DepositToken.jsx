@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import CopiedButton from "../CopiedButton/CopiedButton";
 import QRCode from "qrcode.react";
 import "./DepositToken.css";
-import arrow from "../../images/arrow-up.png";
+import arrow from "../../assets/images/arrow-up.png";
 import { useDispatch, useSelector } from "react-redux";
 import { fromSatoshi } from "../../wallet";
 import QRCodeGenerator from "../QRCodeGenerator/QRCodeGenerator";
@@ -12,7 +12,7 @@ import {
   callTokenVerifyValues,
   setToken,
 } from "../../features/WalletDataSlice";
-import close_img from "../../images/close-icon.png";
+import close_img from "../../assets/images/close-icon.png";
 import { DUST_LIMIT } from "../../wallet/util";
 import AddressInput from "../Inputs/AddressInput";
 import { Spinner } from "react-bootstrap";

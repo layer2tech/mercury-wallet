@@ -1,7 +1,7 @@
 'use strict';
 import './Help.css';
 
-import question from "../../images/question-blue.png";
+import question from "../../assets/images/question-blue.png";
 import {Link, withRouter} from "react-router-dom";
 import {Tab, Tabs} from "react-bootstrap";
 import { StdButton } from '../../components'

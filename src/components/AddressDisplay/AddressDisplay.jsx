@@ -1,6 +1,6 @@
 import { callGetNetwork, callGetStateCoin } from "../../features/WalletDataSlice"
 import CopiedButton from "../CopiedButton/CopiedButton";
-import copy_img from "../../images/icon2.png";
+import copy_img from "../../assets/images/icon2.png";
 
 const AddressDisplay = ({shared_key_id}) => {
     const getAddress = (shared_key_id) => {

@@ -1,6 +1,6 @@
 'use strict';
 import { Link } from "react-router-dom";
-import StdButton from '../standardButton';
+import StdButton from '../StandardButton';
 import '../RouterButton/RouterButton.css';
 
 const RouterButton = ({route: route, label: label, icon: icon, class: classes, tooltip: tooltip = undefined }) => {

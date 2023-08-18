@@ -1,11 +1,11 @@
 'use strict';
-import walletIcon from '../../images/walletIcon.png';
-import withdrowIcon from "../../images/withdrow-icon.png";
+import './Withdraw.css';
 
+import walletIcon from "../../assets/images/walletIcon.png";
+import withdrowIcon from "../../assets/images/withdrow-icon.png";
 import {withRouter, Redirect} from "react-router-dom";
 import {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
-
 import {isWalletLoaded, 
   callWithdraw, 
   callGetFeeEstimation, 
@@ -16,16 +16,12 @@ import {isWalletLoaded,
   setShowWithdrawPopup,
   setWithdrawTxid
 } from '../../features/WalletDataSlice';
-
 import { AddressInput, Tutorial, ConfirmPopup, ItemsContainer} from "../../components";
 import {FILTER_BY_OPTION} from "../../components/MainHeader/MainHeader"
-
 import Loading from '../../components/Loading/Loading';
-
-import './Withdraw.css';
-
 import { STATECOIN_STATUS } from '../../wallet';
 import PageHeader from '../PageHeader/PageHeader';
+
 const WithdrawPage = () => {
   const dispatch = useDispatch();
 

@@ -10,7 +10,7 @@ import {
   setWalletLoaded,
   setWallet,
 } from "../../features/WalletDataSlice";
-import "./confirmSeed.css";
+import "./ConfirmSeed.css";
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 

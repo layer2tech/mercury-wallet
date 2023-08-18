@@ -17,19 +17,18 @@ import {
   callClearSwapGroupInfo,
   callGetSwapGroupInfo
 } from '../../features/WalletDataSlice';
-import SortBy from './SortBy/SortBy';
-import FilterBy from './FilterBy/FilterBy';
+
+
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
-import EmptyCoinDisplay from './EmptyCoinDisplay/EmptyCoinDisplay';
-import './coins.css';
+
+import './Coins.css';
 import '../index.css';
 import './DeleteCoin/DeleteCoin.css'
 
 import {
   callDoSwap
 } from "../../features/WalletDataSlice";
-import Coin from "./Coin/Coin";
-import { coinSort, getPrivacyScoreDesc, getParticipantsByCoinValue } from "./CoinFunctionUtils/CoinFunctionUtils";
+
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 

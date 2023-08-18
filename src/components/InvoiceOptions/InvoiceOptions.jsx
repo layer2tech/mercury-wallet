@@ -1,7 +1,7 @@
 "use strict";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import "../coins/FilterBy/FilterBy.css";
+import "../Coins/FilterBy/FilterBy.css";
 import MenuButtonPopUp from "../MenuButtonPopUp/MenuButtonPopUp";
 import { setShowInvoicePopup } from "../../features/WalletDataSlice";
 

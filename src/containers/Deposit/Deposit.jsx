@@ -1,6 +1,6 @@
 "use strict";
-import plus from "../../images/plus-deposit.png";
-import points from "../../images/points.png";
+import plus from "../../assets/images/plus-deposit.png";
+import points from "../../assets/images/points.png";
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, withRouter, Redirect } from "react-router-dom";

@@ -1,6 +1,6 @@
-import btc_img from "../../images/icon1.png";
-import arrow_img from "../../images/scan-arrow.png";
-import copy_img from "../../images/icon2.png";
+import btc_img from "../../assets/images/icon1.png";
+import arrow_img from "../../assets/images/scan-arrow.png";
+import copy_img from "../../assets/images/icon2.png";
 
 import { CopiedButton } from "../../components";
 import QRCodeGenerator from '../../components/QRCodeGenerator/QRCodeGenerator';

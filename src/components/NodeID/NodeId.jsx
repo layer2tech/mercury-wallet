@@ -1,5 +1,5 @@
 import CopiedButton from "../CopiedButton/CopiedButton";
-import copy_img from "../../images/icon2.png";
+import copy_img from "../../assets/images/icon2.png";
 
 const NodeId = ({ nodeID }) => {
   const copyAddressToClipboard = (event, address) => {

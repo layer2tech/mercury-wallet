@@ -2,15 +2,15 @@
 import Moment from 'react-moment';
 import { fromSatoshi } from '../../wallet/util'
 import {
-	callGetActivityLogItems, callGetAllStatecoins,
+	callGetActivityLogItems,
 	callGetSwappedStatecoinsByFundingOutPoint
 } from '../../features/WalletDataSlice'
-import txidIcon from '../../images/txid-icon.png';
-import createIcon from '../../images/create-icon-dep.png';
-import transferIcon from '../../images/transfer-icon.png';
-import withrowIcon from '../../images/withrow-icon.png';
-import swapIcon from '../../images/swap-icon-grey.png';
-import EmptyCoinDisplay from '../coins/EmptyCoinDisplay/EmptyCoinDisplay';
+
+import txidIcon from '../../assets/images/txid-icon.png';
+import createIcon from '../../assets/images/create-icon-dep.png';
+import transferIcon from '../../assets/images/transfer-icon.png';
+import withrowIcon from '../../assets/images/withrow-icon.png';
+import swapIcon from '../../assets/images/swap-icon-grey.png';
 import './Activity.css';
 import { ActivityLog } from '../../wallet/activity_log';
 

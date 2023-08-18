@@ -1,5 +1,5 @@
 "use strict";
-import arrow from "../../images/arrow-accordion.png";
+import arrow from "../../assets/images/arrow-accordion.png";
 
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";

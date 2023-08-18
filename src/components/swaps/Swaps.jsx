@@ -2,8 +2,8 @@
 import './Swaps.css';
 import '../index.css';
 
-import coin from "../../images/table-icon1.png";
-import user from "../../images/table-icon-user.png";
+import coin from "../../assets/images/table-icon1.png";
+import user from "../../assets/images/table-icon-user.png";
 import {useState, useEffect} from 'react';
 import { Spinner } from "react-bootstrap";
 import {fromSatoshi} from '../../wallet'

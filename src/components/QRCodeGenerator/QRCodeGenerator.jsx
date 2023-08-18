@@ -1,6 +1,5 @@
 'use strict';
-import React from 'react';
-import './qrcode.css'
+import './QRCodeGenerator.css'
 let QRCode = require('qrcode.react');
 
 //Generates a BTC QR code from a p address and an amount passed through as props

@@ -2,7 +2,7 @@
 import "../../containers/Deposit/Deposit.css";
 import { useState, useEffect } from "react";
 import Spinner from "react-bootstrap/Spinner";
-import plus from "../../images/plus-deposit.png";
+import plus from "../../assets/images/plus-deposit.png";
 import {
   callGetCoinsInfo,
   callGetFeeInfo,

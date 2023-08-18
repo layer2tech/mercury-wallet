@@ -1,10 +1,9 @@
 'use strict';
+import "./SendModal.css";
 import { Modal, Spinner} from "react-bootstrap";
 import { CopiedButton } from '..';
 import { CoinValueIcon, copyIcon, CoinAddressIcon} from './Icons';
 import { fromSatoshi } from '../../wallet/util';
-
-import "./index.css";
 
 const SendModal = ({
   transfer_code = '',

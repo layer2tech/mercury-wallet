@@ -1,5 +1,5 @@
 import { ProgressBar } from "react-bootstrap";
-import Tooltip from "../../tooltips/Tooltip";
+import Tooltip from "../../Tooltips/Tooltip";
 
 const ProgressContainer = ({
   progressAlert,

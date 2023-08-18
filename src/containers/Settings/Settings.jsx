@@ -1,11 +1,11 @@
 "use strict";
-import settings from "../../images/settings.png";
+import settings from "../../assets/images/settings.png";
 
 import { useState, useEffect } from "react";
 import { Link, withRouter, Redirect } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import icon2 from "../../images/icon2.png";
-import info from "../../images/info.png";
+import icon2 from "../../assets/images/icon2.png";
+import info from "../../assets/images/info.png";
 
 import {
   StdButton,

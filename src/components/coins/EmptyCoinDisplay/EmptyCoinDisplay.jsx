@@ -1,10 +1,6 @@
 'use strict';
-import React from 'react';
 import { Link } from 'react-router-dom';
-
-import FilterBy from '../FilterBy/FilterBy';
-
-import '../coins.css';
+import '../Coins.css';
 
 const EmptyCoinDisplay = (props) => {
     return(
