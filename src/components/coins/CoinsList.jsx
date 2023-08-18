@@ -21,7 +21,7 @@ import {
   callClearSwapGroupInfo,
   callGetSwapGroupInfo
 } from '../../features/WalletDataSlice';
-import { coinSort } from './CoinFunctionUtils/CoinFunctionUtils';
+import { coinSort } from '../../features/CoinFunctionUtils/CoinFunctionUtils';
 
 import { STATECOIN_STATUS } from '../../wallet/statecoin';
 import {
@@ -30,7 +30,7 @@ import {
 import EmptyCoinDisplay from './EmptyCoinDisplay/EmptyCoinDisplay';
 import FilterBy from './FilterBy/FilterBy';
 import SortBy from './SortBy/SortBy';
-import { getPrivacyScoreDesc, getParticipantsByCoinValue } from './CoinFunctionUtils/CoinFunctionUtils';
+import { getPrivacyScoreDesc, getParticipantsByCoinValue } from '../../features/CoinFunctionUtils/CoinFunctionUtils';
 import Coin from './Coin/Coin';
 
 

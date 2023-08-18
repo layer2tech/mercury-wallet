@@ -4,7 +4,7 @@ import { screen } from "@testing-library/dom";
 import SwapStatus from "../../components/Coins/SwapStatus/SwapStatus";
 import { configureStore } from "@reduxjs/toolkit";
 import { makeDummyStatecoins } from "./test_data.js";
-import { coinSort } from "../../components/Coins/CoinFunctionUtils/CoinFunctionUtils";
+import { coinSort } from "../../features/CoinFunctionUtils/CoinFunctionUtils";
 
 let cloneDeep = require("lodash.clonedeep");
 

@@ -1,6 +1,6 @@
 import { Spinner } from 'react-bootstrap';
-import { callGetBlockHeight } from '../../../features/WalletDataSlice';
-import { STATECOIN_STATUS } from '../../../wallet';
+import { callGetBlockHeight } from '../WalletDataSlice';
+import { STATECOIN_STATUS } from '../../wallet';
 import anon_icon_none from "../../../assets/images/table-icon-grey.png";
 import anon_icon_low from "../../../assets/images/table-icon-medium.png";
 import anon_icon_high from "../../../assets/images/table-icon.png";

@@ -18,7 +18,7 @@ import SwapStatus from "../Coins/SwapStatus/SwapStatus";
 import { SWAP_STATUS_INFO } from "../Coins/CoinsList";
 import QRCodeGenerator from "../QRCodeGenerator/QRCodeGenerator";
 import CoinStatus from "../CoinStatus/CoinStatus";
-import { displayExpiryTime } from "../Coins/CoinFunctionUtils/CoinFunctionUtils";
+import { displayExpiryTime } from "../../features/CoinFunctionUtils/CoinFunctionUtils";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import Moment from "react-moment";
 import CopiedButton from "../CopiedButton/CopiedButton";

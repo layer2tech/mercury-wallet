@@ -26,7 +26,7 @@ import { CoinStatus } from "../..";
 import { HIDDEN } from "../../../wallet/statecoin";
 import {
   displayExpiryTime,
-} from "../CoinFunctionUtils/CoinFunctionUtils";
+} from "../../../features/CoinFunctionUtils/CoinFunctionUtils";
 import Tooltip from "../../Tooltips/Tooltip";
 import ImgAndInfo from "../../ImgAndInfo/ImgAndInfo";
 import AddressDisplay from "../../AddressDisplay/AddressDisplay";
