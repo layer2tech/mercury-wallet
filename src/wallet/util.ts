@@ -3,7 +3,7 @@
 import {
   BIP32Interface,
   Network,
-  TransactionBuilder,
+  Psbt,
   crypto as crypto_btc,
   script,
   Transaction,
@@ -185,10 +185,10 @@ export const getSigHash = (
     .toString("hex");
 };
 
-export const txInputs = (network: Network, sc_infos: Array<StateChainDataAPI>, nSequence: number, init_locktime?: number):  {txb: TransactionBuilder, value: number}  => {
-  let txb = new TransactionBuilder(network);
+export const txInputs = (network: Network, sc_infos: Array<StateChainDataAPI>, nSequence: number, init_locktime?: number):  {txb: Psbt, value: number}  => {
+  let txb = new Psbt({network: network});
 
-  if(init_locktime) txb.setLockTime(init_locktime);
+  if(init_locktime) txb.setLocktime(init_locktime);
 
   let value : number = 0;
 
@@ -199,7 +199,11 @@ export const txInputs = (network: Network, sc_infos: Array<StateChainDataAPI>, n
       value = value + info.amount;
       let txid: string = utxo.txid;
       let vout: number = utxo.vout;
-      txb.addInput(txid, vout, nSequence);
+      txb.addInput({
+        hash: txid,
+        index: vout,
+        sequence: nSequence
+      });
     };
   }
   return {txb: txb, value: value}
@@ -232,21 +236,30 @@ export const calculateFees = (fee_info: FeeInfo, value: number, input_number: nu
 }
 
 
-export const txOutputs = (txb: TransactionBuilder, value: number, input_number: number,   fee_info: FeeInfo, rec_addr: string, fee_per_byte? : number): TransactionBuilder => {
+export const txOutputs = (txb: Psbt, value: number, input_number: number,   fee_info: FeeInfo, rec_addr: string, fee_per_byte? : number): Psbt => {
 
   let [tx_fee, withdraw_fee] = calculateFees(fee_info, value, input_number, fee_per_byte);
 
   if(withdraw_fee && withdraw_fee > 0){
     // Withdrawal fee added as output
     
-    txb.addOutput(rec_addr, value - tx_fee - withdraw_fee);
+    txb.addOutput({
+      address: rec_addr, 
+      value: value - tx_fee - withdraw_fee
+    });
 
-    txb.addOutput( fee_info.address, withdraw_fee );
+    txb.addOutput({
+      address: fee_info.address,
+      value: withdraw_fee
+    });
 
   } else {
     // Pay On Deposit implementation
 
-    txb.addOutput(rec_addr, value - tx_fee )
+    txb.addOutput({
+      address: rec_addr, 
+      value: value - tx_fee 
+    })
 
   }
 
@@ -266,7 +279,7 @@ export const txOutputs = (txb: TransactionBuilder, value: number, input_number: 
 *  If withdrawal transaction use nSequence: 0xFFFFFFFD 
 */
 
-export const txBuilder = (network: Network, sc_infos: Array<StateChainDataAPI>, rec_addr: string, fee_info: FeeInfo, nSequence: number, fee_per_byte?:number, init_locktime?: number): TransactionBuilder => {
+export const txBuilder = (network: Network, sc_infos: Array<StateChainDataAPI>, rec_addr: string, fee_info: FeeInfo, nSequence: number, fee_per_byte?:number, init_locktime?: number): Psbt => {
 
   const transaction = txInputs( network, sc_infos, nSequence, init_locktime);
   // Build input based of sc_infos.
@@ -301,7 +314,7 @@ export const txCPFPBuild = (
   value: number,
   fee_rate: number,
   p2wpkh: any
-): TransactionBuilder => {
+): Psbt => {
   // Total size of backup_tx (1 input 2 outputs) + (1-input-1-output) = 141 + 110 bytes
   // Subtract the fee already paid in the backup-tx
 
@@ -311,10 +324,21 @@ export const txCPFPBuild = (
 
   if (total_fee >= value) throw Error("Not enough value to cover fee.");
 
-  let txb = new TransactionBuilder(network);
+  let txb = new Psbt({ network: network });
 
-  txb.addInput(funding_txid, funding_vout, 0xffffffff, p2wpkh.output);
-  txb.addOutput(rec_address, value - total_fee);
+  txb.addInput({
+    hash: funding_txid,
+    index: funding_vout,
+    sequence: 0xffffffff,
+    witnessUtxo: {
+      script: p2wpkh.output,
+      value: value,
+    },
+  });
+  txb.addOutput({
+    address: rec_address, 
+    value: value - total_fee
+  });
   return txb;
 };
 

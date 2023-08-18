@@ -88,6 +88,7 @@ import isElectron from "is-electron";
 import { TokenData } from "./statecoin";
 import { LDKClient, LIGHTNING_POST_ROUTE } from "./ldk_client";
 import { Channel, ChannelInfo, ChannelList } from "./channel";
+import { callGetUnspentStatecoins } from "../features/WalletDataSlice";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -1785,9 +1786,11 @@ export class Wallet {
     );
 
     // sign tx
-    txb_cpfp.sign(0, ec_pair, null!, null!, backup_tx_data.output_value);
+    txb_cpfp.signAllInputs(ec_pair);
+    txb_cpfp.validateSignaturesOfAllInputs();
+    txb_cpfp.finalizeAllInputs();
 
-    let cpfp_tx = txb_cpfp.build();
+    let cpfp_tx = txb_cpfp.extractTransaction();
 
     // add CPFP tx to statecoin
     for (let i = 0; i < this.statecoins.coins.length; i++) {
@@ -1847,7 +1850,22 @@ export class Wallet {
     return token;
   }
 
+  deleteTokenByAddress(lnAddress: string) {
+    console.log("[wallet.ts]: deleteToken was called on: ", lnAddress);
+    console.log("[wallet.ts]: this.tokens:", this.tokens);
+    this.tokens = this.tokens.filter((item) => {
+      if (item.token.ln !== lnAddress) {
+        return item;
+      }
+      return null;
+    });
+
+    this.save();
+  }
+
   deleteToken(token_id: string) {
+    console.log("[wallet.ts]: deleteToken was called on: ", token_id);
+    console.log("[wallet.ts]: this.tokens:", this.tokens);
     this.tokens = this.tokens.filter((item) => {
       if (item.token.id !== token_id) {
         return item;
@@ -1974,6 +1992,14 @@ export class Wallet {
       }
       log.debug("Set Statecoin spent: " + id);
     }
+  }
+
+  setStateCoinSending(shared_key_id: string) {
+    this.statecoins.setCoinSending(shared_key_id);
+  }
+
+  setStateCoinAvailable(shared_key_id: string) {
+    this.statecoins.setCoinAvailable(shared_key_id);
   }
 
   setStateCoinAutoSwap(shared_key_id: string) {
@@ -2737,7 +2763,7 @@ export class Wallet {
               statecoin.getTXIdAndOut() +
               " waiting in swap pool. Remove from pool to transfer."
           );
-        if (statecoin.status !== STATECOIN_STATUS.AVAILABLE)
+        if (statecoin.status !== STATECOIN_STATUS.AVAILABLE && statecoin.status !== STATECOIN_STATUS.SENDING)
           throw Error(
             "Coin " + statecoin.getTXIdAndOut() + " not available for Transfer."
           );
@@ -2825,6 +2851,15 @@ export class Wallet {
       null,
       excluded_txids
     );
+
+    let prev_shared_key_ids = finalize_data.tx_backup_psm.shared_key_ids;
+    let coin_data = callGetUnspentStatecoins();
+    let last_shared_key_id= prev_shared_key_ids[prev_shared_key_ids.length - 1];
+    for (const coin of coin_data) {
+      if (coin.shared_key_id === last_shared_key_id) {
+        this.setStateCoinAvailable(last_shared_key_id);
+      }
+    };
 
     // Finalize protocol run by generating new shared key and updating wallet.
     await this.transfer_receiver_finalize(finalize_data);

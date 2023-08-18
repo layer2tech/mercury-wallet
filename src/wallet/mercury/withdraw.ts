@@ -104,7 +104,8 @@ export const withdraw_init = async (
 
   let nSequence = WITHDRAW_SEQUENCE;
 
-  tx_withdraw_unsigned = txBuilder(network, sc_infos, rec_addr, fee_info, nSequence, fee_per_byte).buildIncomplete();
+  // @ts-ignore
+  tx_withdraw_unsigned = txBuilder(network, sc_infos, rec_addr, fee_info, nSequence, fee_per_byte).__CACHE.__TX.clone();
 
   let signatureHashes: string[] = [];
 
@@ -209,7 +210,8 @@ export const withdraw_duplicate = async (
     throw Error("Duplicate deposits cannot be batch withdrawn");
   } else {
     let nSequence = WITHDRAW_SEQUENCE;
-    tx_withdraw_unsigned = txBuilder(network, sc_infos, rec_addr, fee_info, nSequence, fee_per_byte).buildIncomplete();
+    // @ts-ignore
+    tx_withdraw_unsigned = txBuilder(network, sc_infos, rec_addr, fee_info, nSequence, fee_per_byte).__CACHE.__TX.clone();
   }
 
   let signatureHashes: string[] = [];
