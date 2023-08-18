@@ -1,22 +1,20 @@
-import React, { useState, useEffect } from "react";
-import CopiedButton from "../CopiedButton/CopiedButton";
-import QRCode from "qrcode.react";
+"use strict";
 import "./DepositToken.css";
-import arrow from "../../assets/images/arrow-up.png";
+import { useState, useEffect } from "react";
+import CopiedButton from "../CopiedButton";
+import QRCode from "qrcode.react";
 import { useDispatch, useSelector } from "react-redux";
 import { fromSatoshi } from "../../wallet";
-import QRCodeGenerator from "../QRCodeGenerator/QRCodeGenerator";
 import {
+  callDeleteTokenByAddress,
   callTokenDepositInit,
-  callTokenVerify,
   callTokenVerifyValues,
+  setError,
   setToken,
 } from "../../features/WalletDataSlice";
-import close_img from "../../assets/images/close-icon.png";
-import { DUST_LIMIT } from "../../wallet/util";
+import close_img from "../../images/close-icon.png";
 import AddressInput from "../Inputs/AddressInput";
 import { Spinner } from "react-bootstrap";
-
 // Add Animation for when button clicked
 
 const DepositToken = ({
@@ -70,9 +68,18 @@ const DepositToken = ({
         dispatch(callTokenDepositInit({ value: item, token: tokenId })).then(
           (value) => {
             setLoading(false);
-            // check if it failed?
+
             if ((value.type = "tokenDepositInit/fulfilled")) {
-              setStep(3);
+              dispatch(
+                callDeleteTokenByAddress({ lnAddress: address.addr })
+              ).then(() => {
+                setStep(3);
+              });
+            } else {
+              // if it failed
+              dispatch(
+                setError({ msg: "Coin was unable to be created, try again" })
+              );
             }
           }
         );
@@ -82,7 +89,15 @@ const DepositToken = ({
       dispatch(setToken(token)).then((value) => {
         setLoading(false);
         if ((value.type = "tokenDepositInit/fulfilled")) {
-          setStep(3);
+          dispatch(callDeleteTokenByAddress({ lnAddress: address.addr })).then(
+            () => {
+              setStep(3);
+            }
+          );
+        } else {
+          dispatch(
+            setError({ msg: "Coin was unable to be created, try again" })
+          );
         }
       });
     }
