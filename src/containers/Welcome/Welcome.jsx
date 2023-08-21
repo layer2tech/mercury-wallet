@@ -31,7 +31,7 @@ const Welcome = () => {
     <div className="max-w-2xl mx-auto p-5 pt-20 text-left">
       <div>
         <h1 data-cy="mercury-landing-title" className="text-4xl">Welcome to Mercury</h1>
-        <p data-cy="mercury-landing-message" className="text-base text-[#202020] max-w-2xl p-2">
+        <p data-cy="mercury-landing-message" className="text-base text-[#202020] max-w-2xl p-2 dark:text-[#e7e7e787]">
           If you’re using Mercury wallet for the first time, create a new
           wallet. If you have an existing wallet, load the wallet from your
           device storage, or use your seed phrase or backup file to restore the
