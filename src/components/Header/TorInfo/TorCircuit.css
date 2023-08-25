@@ -1,0 +1,113 @@
+/* 
+  TODO - this css is affecting other parts of the wallet - needs to be unique to torcircuit only 
+  This css is also rendering incorrectly - the circle should be in the center, I think another style somewhere else is being added
+  Look at help page for instance, the li are changed due to this css file
+*/
+
+.tor.dropdown {
+  /* position: absolute; */
+  display: inline-block;
+  top:1px;
+  right:0;
+  margin-right:14px;
+
+}
+
+.tor .dropdown-content {
+  display: none;
+  position: absolute;
+  top:-20;
+  right:0;
+  min-width: 260px;
+  min-height:310px;
+  padding: 12px 16px;
+  z-index: 1;
+  background-color: var(--container);
+  border: none;
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  margin-top:0px;
+}
+
+.tor.dropdown:hover .dropdown-content, .tor .dropdown-content:hover{
+  display: block;
+}
+
+.tor button{
+  margin:0px;
+}
+.tor button:focus{
+  outline: 0;
+  box-shadow: 0 0 0 0.1rem rgba(0,123,255,.25);
+}
+
+ul {
+  list-style: none;
+  margin:0px;
+  padding: 0;
+  font: normal 16px/22px Arial;
+  color: var(--box-shadow);
+}
+
+li {
+  overflow: hidden;
+  position: relative;
+  padding: 0 0 10px 35px;
+}
+
+.tor li::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 9px;
+    width: 20px;
+    height: 999px;
+    border: 2px solid var(--primary);
+    border-width: 0 0 0 2px;
+}
+
+.tor li:last-child::before {
+  border-width: 0px 0 0;
+}
+
+.tor li::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border: 2px solid var(--primary);
+  border-radius: 50%;
+}
+
+li.current,
+li.passed {
+  color: var(--text-secondary);
+}
+
+li{
+  color: var(--text-secondary-sub)
+}
+
+li.current::before {
+  border-top-color: var(--primary);
+}
+
+li.current::after {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+li.passed::before,
+li.passed::after {
+  border-color: var(--primary);
+}
+.tor #loading.loading {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin-bottom: 0px;
+  color: var(--text-secondary-sub);
+}
