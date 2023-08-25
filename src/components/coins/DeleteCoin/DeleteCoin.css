@@ -1,6 +1,0 @@
-.close:before {
-    content: '✕';
-}
-.close {
-    right: 10px;
-}
