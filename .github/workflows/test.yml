@@ -22,20 +22,30 @@ jobs:
       - run: npm install --force
       - run: yarn test
   e2e-tests:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install dependencies
-        uses: actions/setup-node@v3
-        with:
-          node-version: "16.16"
-          runTests: false
-      - run: npm install --force
-      - name: Run e2e tests
-        uses: cypress-io/github-action@v4
-        with:
-          start: npm run adapters-browser
-          wait-on: "http://localhost:3000/#/"
-          browser: chrome
-          # we have already installed all dependencies above
-          install: false
+      runs-on: ubuntu-20.04
+      steps:
+        - uses: actions/checkout@v2
+        - name: Install dependencies
+          uses: actions/setup-node@v2
+          with:
+            node-version: "16.16"
+        - run: npm install --force
+        - name: Start local server
+          run: npm run adapters-browser & # Start the server in the background
+        - name: Wait for server to be up
+          run: |
+            timeout=300 # Set the timeout value in seconds
+            until nc -z localhost 3000; do
+              echo "Waiting for server to be up..."
+              sleep 5
+              ((timeout--))
+              if [ $timeout -le 0 ]; then
+                echo "Timeout reached. Exiting."
+                exit 1
+              fi
+            done
+        - name: Run e2e tests
+          uses: cypress-io/github-action@v2
+          with:
+            browser: chrome
+            install: false
