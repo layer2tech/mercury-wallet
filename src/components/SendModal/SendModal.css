@@ -1,0 +1,208 @@
+/* .send-modal .modal-dialog {
+  width: 384px;
+} */
+.send-modal .send-steps {
+  display: flex;
+  flex-direction: column;
+}
+
+.send-modal .modal-content{
+  position: fixed;
+  margin-top:8%;
+}
+
+.send-modal .modal-dialog{
+  position: initial;
+}
+
+.send-modal .send-steps .step-item {
+  margin-bottom: 20px;
+  position: relative;
+}
+.send-modal .send-steps .step-item:first-child::after{
+  content: '';
+  display: block;
+  width: 1px; 
+  height: 30px;
+  background-color: #707070;
+  position: absolute;
+  z-index: 9;
+  left: 12px;
+}
+.send-modal .send-steps .step-no {
+  width: 24px;
+  height: 24px;
+  background-color: var(--text-secondary);
+  position: absolute;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  z-index: 10;
+}
+.send-modal .send-steps .step-item span:last-child {
+  margin-left: 35px;
+}
+.send-modal .send-steps .step-item.active .step-no {
+  background-color: var(--primary);
+}
+.send-modal .send-steps .step-item.active {
+  color: var(--primary);
+}
+
+.send-modal p {
+  font-size: 20px;
+  line-height: 24px;
+  letter-spacing: 0.62px;
+  color: var(--text-primary);
+}
+
+.send-modal .transfer-code {
+  background: var(--selected);
+  border-radius: 5px;
+  padding: 19px 19px 19px 36px;
+  position: relative;
+  cursor: pointer;
+  margin-top: 50px;
+}
+
+.send-modal .transfer-code .copy-note {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  text-align: center;
+  color: var(--text-primary);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+}
+
+.send-modal .transfer-code .copy-btn {
+  position: absolute;
+  left: 12px;
+}
+
+.send-modal .transfer-code .copy-code {
+  font-size: 14px;
+  line-height: 17px;
+  color: var(--text-primary);
+  font-weight: bold;
+  word-break: break-all;
+  max-height: 122px;
+  overflow-y: auto;
+  display: block;
+}
+.send-modal .transfer-code:hover .copy-code {
+  color: var(--primary);
+}
+.send-modal .loading-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding:60px;
+}
+
+.send-modal .loading-spinner{
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.send-modal .loading-txt{
+  display: flex;
+  justify-content: center;
+}
+
+.send-modal .confirm-btn {
+  text-transform: uppercase;
+  color: #fff;
+  border: none;
+  background: var(--text-secondary-sub);
+  border-radius: 4px;
+  padding: 19px 0;
+  width: 100%;
+  margin-top: 63px;
+  outline: none;
+}
+.send-modal .confirm-btn.step2{
+  margin-top: 20px;
+}
+.send-modal .confirm-btn span {
+  margin-right: 8px;
+}
+.send-modal .confirm-btn.active,
+.send-modal .confirm-btn:hover
+ {
+  background-color: var(--primary);
+}
+.send-modal .confirm-btn span:not(.no-scale) svg {
+  transform: scale(1.5);
+}
+.send-modal .coin-info {
+  padding: 16px 0;
+  display: flex;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.121569);
+}
+.send-modal .coin-info .coin-content {
+  display: flex;
+  flex-direction: column;
+  padding-left: 12px;
+  max-width: 88%;
+  overflow: hidden;
+}
+.send-modal .coin-info .coin-content span:last-child{
+  font-weight: bold;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.25px;
+}
+.send-modal .coin-info .coin-content span:last-child.coin-address{
+  font-weight: normal;
+}
+
+.send-modal .private-passphrase {
+  border: 1px solid rgba(0, 0, 0, 0.121569);
+  border-radius: 4px;
+  padding: 16px;
+  font-size: 15px;
+  line-height: 23px;
+  letter-spacing: 0.140625px;
+  color: var(--text-primary);
+  opacity: 1;
+  margin-top: 50px;
+  width: 100%;
+  position: relative;
+}
+
+
+.transfer-code .tooltip {
+  visibility: hidden;
+  width: 350px;
+  background-color: var(--button-border);
+  color: var(--text-primary);
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  margin-left: -60px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  top: -60px;
+}
+
+.transfer-code .tooltip:after {
+  content: "";
+  position: fixed;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--button-border) transparent transparent transparent;
+}
+.transfer-code:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}

@@ -1,0 +1,54 @@
+.help .subtitle {
+    color: #676767;
+    font-size: 20px;
+    text-align: left;
+    font-weight: 400;
+    padding-left: 62px;
+
+}
+
+.list {
+    display: flex;
+    list-style: none;
+    padding-left: 55px;
+    text-transform: uppercase;
+}
+.list li a {
+    margin: 0 10px;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.help-tabs .nav-tabs a {
+    width: 33%;
+    text-align: center;
+    text-transform: uppercase;
+
+}
+.help-tabs {
+    text-align: left;
+}
+.help-tabs .content {
+    padding: 10px;
+}
+.help-tabs .content .title {
+    display: block;
+    font-size: 20px;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    font-weight: 400;
+
+
+}
+.help-tabs .content  p {
+    font-size: 1rem;
+    line-height: 2rem;
+    font-weight: 300;
+}
+@media only screen and (max-width: 768px) {
+    .list {
+        padding-left: 0;
+        text-align: center;
+        justify-content: center;
+    }
+}

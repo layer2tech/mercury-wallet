@@ -1,0 +1,187 @@
+.Collapse {
+    display: flex;
+    position: relative;
+    justify-content: space-around;
+    width: 100%;
+    padding: 5px 25px;
+}
+
+.Collapse .image {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.Collapse.row {
+    margin: 0;
+}
+
+
+.accordion .hide {
+    transition: all .5s ease-in-out;
+    height: 0;
+    overflow: hidden;
+}
+
+.accordion .show {
+    transition: all .5s linear;
+    overflow: auto;
+    padding: 30px 10px;
+}
+
+label {
+    display: block;
+    position: relative;
+    padding-left: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-secondary-sub);
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.connection-title {
+    display: flex;
+    padding: 0 !important;
+    justify-content: flex-start;
+    width: 33.3333%;
+    flex: 0 0 33.3333%;
+}
+
+.connection-title input {
+    position: absolute;
+    opacity: 0;
+    flex: 1;
+    cursor: pointer;
+}
+
+.checkmark {
+    position: absolute;
+    top: 4px;
+    left: 0;
+    height: 15px;
+    width: 15px;
+    background-color: var(--container);
+    /* border: 2px solid var(--success); */
+    border-radius: 50%;
+    content: "";
+    box-sizing: border-box;
+    position: absolute;
+    border: 2px solid lightgray;
+    border-top-color: var(--success);
+    animation: spinner 0.7s linear infinite;
+}
+
+.checkmark.connected{
+    border: 2px solid  var(--success);
+}
+
+@keyframes spinner {
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.ConnectionServer input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.checkmark:after {
+    top: 2px;
+    left: 2px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--success);
+}
+
+.collapse-content {
+    display: flex;
+    justify-content: space-between;
+    /* padding: 0 20px; */
+}
+
+.connection-wrap .collapse-content-item:first-child  {
+    margin-left: 0;
+}
+.connection-wrap .collapse-content-item {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: baseline;
+    font-size: 16px;
+    color: var(--text-secondary-sub);
+    margin-left: 8px;
+    padding: 8px;
+}
+
+.connection-wrap .collapse-content-item .host {
+    white-space: nowrap;
+}
+
+/* URL that shows up on hover */
+
+.url-hover{
+
+    background-color: #fff;
+    display: inline-block !important;
+    position:absolute;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
+    border:0.5px solid rgba(0, 0, 0, 0.15);
+    z-index: 1;
+    font-size:0.725rem;
+    margin-left: 0.5%;
+    color: #666666;
+
+}
+
+.url-hide{
+    overflow:hidden;
+}
+
+
+
+@media only screen and (max-width: 768px) {
+    .Body.small {
+        padding: 16px;
+    }
+
+    .Collapse.row {
+        padding: 0;
+    }
+
+    .Collapse .image {
+        right: 0;
+    }
+
+    .collapse-content .collapse-content-item {
+        margin-left: 0 !important;
+        flex: 1;
+        padding: 4px;
+    }
+
+    .collapse-content {
+        padding: 0;
+    }
+
+    .accordion .show {
+        margin-top: 16px;
+        padding: 0;
+    }
+
+    .collapse-content .collapse-content-item span {
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}

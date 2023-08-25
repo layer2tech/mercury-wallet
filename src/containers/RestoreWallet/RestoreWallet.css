@@ -1,0 +1,95 @@
+.restore-wallet-wrap {
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+}
+.restore-form {
+   width: 50%;
+    margin: 0 auto;
+    position: relative;
+    padding-bottom: 90px;
+}
+
+.restore-form .inputs-item input {
+    position: relative;
+    opacity: 1;
+    width: 100% !important;
+    padding: 10px;
+    margin-bottom: 30px;
+    border: 1px solid #D7D7D7;
+    border-radius: 6px !important;
+}
+.restore-form .inputs-item {
+    justify-content: center;
+    width: 350px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.restore-form .inputs-item .eye-icon {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    height: 46px;
+    display: flex;
+    align-items: center;
+}
+
+.restore-form .inputs-item p {
+    text-align: left;
+}
+.inputs-item.checkbox {
+    justify-content: start;
+}
+.inputs-item.checkbox input {
+    border-radius: 0 !important;
+    width: 22px !important;
+    position: relative;
+    top: 7px;
+}
+
+
+
+.error {
+    width: 350px;
+    margin: 0 auto;
+    word-break: break-word;
+}
+.error p {
+    color: red;
+    text-align: left;
+    word-break: break-word;
+}
+
+.restore-form .inputs-item input[type='checkbox'] {
+    border: 1px solid var(--text-primary);
+    background: var(--container);
+}
+
+.restore-form a.send.disabled {
+    background-color: var(--idle);
+    color: var(--container);
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.restore-form .btn-confirm-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.restore-form a.send:hover {
+    float: none;
+    margin-top: 0;
+    padding: 5px 16px;
+    border-radius: 8px;
+}
+
+.restore-form .btn-primary {
+    background-color: var(--button-main);
+}
+
+.restore-form .backup-btn {
+    margin: 0 auto;
+}

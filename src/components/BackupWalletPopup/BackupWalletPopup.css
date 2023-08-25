@@ -1,0 +1,30 @@
+.custom-modal-body.modal-body {
+  padding: 16px;
+}
+.custom-modal-info {
+  font-size: 20px;
+  text-align: center;
+  word-wrap: break-word;
+}
+.custom-modal-info .alert-danger {
+  word-wrap: break-word;
+}
+.custom-modal-footer {
+  display: flex;
+  justify-content: center;
+}
+.custom-modal-footer.group-btns {
+  padding-bottom: 20px;
+}
+.custom-modal-footer.group-btns button {
+  margin-right: 16px;
+}
+
+.modal-content{
+  background-color: var(--container)!important;
+}
+
+.modal .modal-footer button{
+  color: var(--text-primary)!important;
+  background-color: var(--container)!important;
+}

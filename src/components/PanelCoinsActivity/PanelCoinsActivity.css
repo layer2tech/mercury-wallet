@@ -1,0 +1,78 @@
+.CoinsPanel {
+  /* padding: 10px 0; */
+}
+.table {
+  margin-bottom: 15px;
+  box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
+  padding: 10px 0;
+  border-radius: 4px;
+  background-color: var(--container);
+}
+
+.tab-content {
+  padding: 10px;
+}
+.tab-content article {
+  border-bottom: 1px solid #dee2e6;
+}
+.tab-content .CoinPanel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 10px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.nav-tabs {
+  display: flex;
+ justify-content: center;
+  width: 100%;
+
+}
+.nav-tabs a {
+  position: relative;
+  color: var(--text-secondary-sub);
+  font-size: 14px;
+  width: 50%;
+}
+.nav-tabs .nav-link {
+  border: none;
+}
+.nav-tabs .nav-link {
+  border: none !important;
+}
+
+.nav-tabs a.nav-item.active:after {
+  content: "";
+  display: block;
+  background-color:  var(--primary);
+  height: 2px;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active,
+.nav-tabs .nav-link:focus, .nav-tabs .nav-link:hover {
+  border-top: transparent;
+  border-left: transparent;
+  border-right: transparent;
+  color: var(--text-secondary)!important;
+  background-color: var(--container)!important;
+
+}
+.dark-mode .nav-tabs{
+  border-bottom:0px;
+}
+
+/* .withdrawn-tab{
+  color: var(--primary);
+  letter-spacing: 1.246px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 16px;
+  border-bottom: 2px solid #E0E0E0;
+
+  padding: 16px;
+} */

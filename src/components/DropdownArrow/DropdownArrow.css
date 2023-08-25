@@ -1,0 +1,10 @@
+.image {
+    cursor: pointer;
+}
+
+.image.rotate img {
+    transform: rotate(180deg);
+    transition-property: transform;
+    transition-timing-function: ease-in;
+    transition-duration: 0.5s;
+}

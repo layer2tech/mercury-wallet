@@ -1,0 +1,110 @@
+.wizard-form {
+    width: 80%;
+    margin: 0 auto;
+}
+
+.wizard-form .inputs-item input {
+    width: 100% !important;
+    padding: 10px;
+    margin-bottom: 30px;
+    border: 1px solid #D7D7D7;
+    border-radius: 6px !important;
+}
+
+.wizard-form .inputs-item {
+    justify-content: center;
+    width: 350px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.wizard-form .inputs-item .eye-icon {
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    height: 46px;
+    display: flex;
+    align-items: center;
+}
+
+.wizard-form input {
+    opacity: 1;
+    position: relative;
+}
+
+.wizard-form .inputs-item p {
+    text-align: left;
+}
+
+.wizard-form .inputs-item.checkbox {
+    justify-content: start;
+}
+
+.wizard-form .inputs-item.checkbox input {
+    border-radius: 0 !important;
+    width: 22px !important;
+    position: relative;
+    background: none;
+    top: 7px;
+}
+
+.wizard-form .terms-conditions {
+    background-color: var(--container);
+    border: none;
+    padding: 30px;
+    margin-bottom: 15px;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
+    border-radius: 4px;
+    z-index: 150;
+    position: absolute;
+    top: 8%;
+    left: 7%;
+    margin-right:7%;
+}
+
+
+.restore-form .wizard-form .terms-conditions{
+    top:0%;
+}
+
+
+.wizard-form .tc-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 100;
+}
+.wizard-form .terms-conditions .group-btns.tcs{
+    display: flex;
+    justify-content: flex-end;
+}
+
+.wizard-form .terms-conditions .group-btns .primary-btn.ghost{
+    padding: 2px 4px;
+}
+
+li.go2067797667:last-child::before {
+    content: "3" !important;
+}
+
+.go2478912419::before {
+    content: "✓" !important;
+}
+
+.error {
+    width: 350px;
+    margin: 0 auto;
+    word-break: break-word;
+}
+
+.error p {
+    color: red;
+    text-align: left;
+    word-break: break-word;
+}
+
+.restore-network {
+    text-align: left;
+}

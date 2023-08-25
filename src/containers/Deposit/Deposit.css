@@ -1,0 +1,522 @@
+.container.deposit{
+    min-width:500px;
+}
+
+.deposit .subtitle {
+    display: block;
+    font-size: 20px;
+    color: var(--text-secondary-sub);
+    text-align: left;
+    margin-left: 49px;
+    font-weight: 400;
+
+}
+
+.deposit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.deposit-header img {
+    cursor: pointer;
+}
+
+.deposit-txt {
+    display: flex;
+    margin-left: 62px;
+    margin-top: 20px;
+}
+
+.deposit-txt .item  {
+    display: flex;
+    flex-direction: column;
+    align-items: baseline;
+    position: relative;
+    width: 40%;
+}
+
+.deposit-txt .item span:first-child {
+    display: block;
+    font-size: 16px;
+    background-color: #707070;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    color: var(--container);
+    margin-bottom: 10px;
+}
+
+.deposit-txt .item:after {
+    content: "";
+    display: block;
+    width: 94%;
+    height: 1px;
+    left: 24px;
+    background-color: #707070;
+    position: absolute;
+    top: 11px;
+    z-index: 0;
+}
+.deposit-txt .item:nth-child(2):after {
+    display: none;
+}
+
+.deposit-txt .item span:nth-child(2) {
+    font-size: 20px;
+    display: block;
+    color: var(--text-secondary-sub);
+    font-weight: 400;
+}
+.deposit-txt .item.active span:first-child {
+    background-color: var(--button-main);
+}
+.deposit-txt .item.active span:nth-child(2) {
+    color: var(--button-main);
+
+}
+
+.deposit-main {
+    display: flex;
+    align-items: center;
+}
+.deposit-main .numbers {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.deposit-main .numbers-item {
+    width: 25%;
+    padding: 16px;
+    cursor: pointer;
+    margin-bottom: 14px;
+}
+.deposit-main .numbers-item div.progress {
+    /* background-color: var(--button-main); */
+    background: rgba(0, 84, 244, 0.380392);
+    display: block;
+    width: 100%;
+    height: 4px;
+    margin-top: 9px;
+    margin-bottom: 5px;
+}
+
+.deposit-main .numbers-item div.progress .fill {
+    height: 4px;
+    width: 50%;
+    background-color: var(--button-main);
+}
+.deposit-main .numbers span {
+    display: block;
+    font-size: 20px;
+    line-height: 16px;
+}
+.deposit-main .numbers span:nth-child(3) {
+    color: #757575;
+    font-size: 12px;
+    line-height: 16px;
+}
+
+.deposit-main .numbers .custom-deposit-btn {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.deposit-main .numbers .custom-deposit-btn::after {
+    content: ' ';
+    width: 0px;
+    height: 0px;
+    margin-left: 18px;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #000;
+}
+
+.deposit-main .deposit-statecoins {
+    margin-left: 40px;
+    width: 80%;
+}
+.deposit-main .deposit-statecoins .numbers-item.selected-value {
+    background: #ECF2FE;
+    border-radius: 5px;
+    color: var(--primary);
+    position: relative;
+    border: 1px solid;
+    box-shadow: 0 0 1px 1px;
+}
+
+
+
+.deposit-main .deposit-statecoins .numbers-item.selected-value svg {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    display:none;
+}
+
+.loading-trans {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+    color: var(--text-primary);
+    width: 250px;
+    background-color: var(--selected);
+    margin: 20px auto;
+}
+.loading-trans .loading-keys {
+    display: flex;
+    align-items: center;
+}
+.loading-trans .loading-keys span {
+    padding: 0 12px;
+}
+
+.go3147146168:before {
+    background-color: #707070 !important;
+    border-radius: 50% !important;
+}
+.go579888598 span {
+    position: relative;
+    top: 40px;
+    left: 4px;
+    color: var(--container);
+}
+.go3147146168 span {
+    position: relative;
+    top: 40px;
+    left: 4px;
+    color: var(--container);
+}
+.go3163795179 span {
+    display: none;
+}
+.go579888598:before,
+.go3147146168:before {
+    width: 24px !important;
+    height: 24px;
+    color: transparent !important;
+}
+.go3163795179:hover, .go3163795179::before {
+    left: 0;
+}
+.go2441762052 li {
+    width: 30%;
+}
+ol.go2441762052 {
+    text-align: left;
+
+}
+.deposit .wizard {
+    margin-bottom: 15px;
+}
+.wizard .btns a {
+     font-size: 14px;
+     text-transform: uppercase;
+     background-color: var(--button-main);
+     color: var(--container);
+     padding: 5px 10px;
+     border-radius: 6px;
+     float: right;
+     display: block;
+     width: 88px;
+     margin-top: 30px;
+ }
+
+.create-title {
+    font-size: 14px;
+    display: block;
+    font-weight: bold;
+    font-weight: 500;
+    letter-spacing: 1px;
+    cursor: pointer;
+
+}
+.create-title img {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+}
+
+.selected-item span {
+    display: block;
+    color: var(--text-primary);
+    font-size: 16px;
+
+}
+.modal-header {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.modal-body {
+    padding-top: 0;
+}
+
+.modal-header h6 {
+    font-size: 20px;
+    color: var(--text-primary);
+    padding-top: 15px;
+    font-weight: 400;
+}
+.selected-item {
+    margin: 20px auto;
+}
+.selected-item select {
+    font-size: 14px;
+    color: #212121;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
+    padding: 8px 15px;
+    border: none;
+    width: 100%;
+    margin-top: 15px;
+
+}
+
+.selected-item .custom-smallest {
+    position: relative;
+    margin-top: 15px;
+    padding: 8px 15px;
+    width: 100%;
+    border: 1px solid #D7D7D7;
+    /* border: none; */
+    border-radius: 4px;
+    /* box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px; */
+    font-size: 14px;
+    opacity: 1;
+}
+
+.add.show {
+    display: block;
+}
+.add.hide {
+    display: none;
+}
+.deposit-scan {
+    display: flex;
+    align-items: center;
+}
+
+.deposit-scan-subtxt {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.deposit-scan-subtxt span {
+    display: block;
+    font-size: 14px;
+}
+
+.description-coin-label form input{
+    opacity:1;
+    width: 100% !important;
+    padding: 10px;
+    border: 0px solid #D7D7D7;
+    border-radius: 6px !important;
+    position:relative;
+    cursor:text;
+}
+
+.Body .deposit-text{
+    font-size:13px;
+}
+
+.deposit-scan-subtxt .deposit-scan-status {
+    display: flex;
+    align-items: center;
+}
+.deposit-scan-subtxt .deposit-scan-status span {
+    background-color: var(--selected);
+    padding: 5px 20px;
+    border-radius: 20px;
+}
+.deposit-scan-subtxt .deposit-scan-status img {
+    cursor: pointer;
+    margin-left: 8px;
+}
+.deposit-scan-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.deposit-scan-main span {
+    font-size: 20px;
+
+}
+.deposit-scan-content {
+    width: 100%;
+    padding: 20px;
+}
+.deposit-scan-main-item {
+    display: flex;
+    align-items: center;
+    background-color: var(--selected);
+    padding: 20px 30px;
+    margin-top: 10px;
+    color: var(--text-primary);
+}
+
+.deposit .deposit-scan-main-item:first-child {
+    width:185px;
+}
+
+.home-page .main-coin-wrap .deposit-scan-main-item{
+    width: 450px;
+}
+
+.deposit-scan-main-item img  {
+    margin-right: 10px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+}
+.nav-item .nav-link img {
+    width: 24px;
+    height: 24px;
+}
+
+.go2067797667:before {
+    color: var(--container) !important;
+    height: 20px;
+    width: 20px !important;
+    background-color: var(--text-secondary) !important;
+    border-radius: 50% !important;
+    content: "2" !important;
+
+}
+.go2478912419:before {
+    background-color: var(--button-main) !important;
+    height: 20px;
+    width: 20px !important;
+    color: var(--button-main) !important;
+}
+.go2478912419, .go767851704 {
+    border-bottom: 4px solid var(--button-main) !important;
+}
+.go767851704:before {
+    background-color: var(--button-main) !important;
+    color:var(--container) !important;
+    width: 20px !important;
+    height: 20px;
+}
+.go767851704 span, .go2478912419 span, .go2067797667 span {
+    display: none;
+}
+.go2478912419:before {
+    content: "1" !important;
+    color: var(--container) !important;
+}
+.go2441762052 .go2478912419:nth-child(2):before {
+    content: "2" !important;
+    color: var(--container) !important;
+}
+
+.deposit button.continue{
+    margin-left: 12px;
+}
+
+@media only screen and (max-width: 768px)  {
+    .deposit-main {
+        display: block;
+        margin: 0 auto;
+        text-align: center;
+    }
+    .deposit-statecoins {
+        margin-left: 0;
+    }
+    .deposit-main .numbers-item {
+        width: 50%;
+    }
+    .deposit-header {
+        flex-wrap: wrap;
+        flex-direction: column-reverse;
+    }
+    .deposit .subtitle {
+        text-align: center;
+        margin-left: 0;
+    }
+    .deposit .nav-link {
+        padding: 0;
+    }
+    .deposit-scan {
+        align-items: end;
+    }
+    .deposit-scan img:first-child {
+        width: 50px;
+        height: 50px;
+    }
+    .deposit-scan-content {
+        padding: 0;
+    }
+    .deposit-scan-main span {
+        font-size: 12px;
+    }
+    .deposit-scan-main-item {
+    padding: 10px;
+        }
+    .deposit-scan .deposit-scan-main-item img {
+        width: auto;
+        height: auto;
+    }
+    .long {
+        display: block;
+        width: 130px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .deposit-scan-subtxt {
+        display: block;
+    }
+    .deposit-scan-subtxt span {
+        margin-bottom: 10px;
+    }
+}
+
+@media only screen and (max-width: 1200px) {
+    .long {
+        display: block;
+        /* width: 130px; */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+}
+@media only screen and (max-width: 991px) {
+    .long {
+        display: block;
+        /* width: 130px; */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .deposit .long{
+        width:130px;
+    }
+
+    .home-page .main-coin-wrap .deposit-scan-main-item{
+        width: 250px;
+    }
+}
+
+@media only screen and (max-width:768px){
+    .main-coin-wrap .long{
+        width: auto;
+    }
+    .main-coin-wrap .deposit-scan-main-item{
+        display:flex;
+        justify-content: center;
+    }
+
+    .home-page .main-coin-wrap .deposit-scan-main-item{
+        width:auto;
+    }
+
+    .deposit .deposit-scan-main-item{
+        width:110px;
+    }
+}

@@ -1,0 +1,16 @@
+.inputs-item.checkbox input#check-box{
+    border: 1px solid #707070;
+    opacity: 1;
+    min-width: 21px;
+    border-radius: 0 !important;
+    width: 22px !important;
+    position: relative;
+    background: var(--background);
+    top: 7px;
+}
+
+.inputs-item.checkbox{
+    justify-content: center !important;
+    margin-top: 0px !important;
+    margin-bottom: 10px;
+}

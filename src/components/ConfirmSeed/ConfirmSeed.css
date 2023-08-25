@@ -1,0 +1,46 @@
+.wizard-form-confirm form input {
+    opacity: 1;
+    position: relative;
+    border-radius: 20px;
+    padding: 10px;
+    width: 130px;
+    border: 1px solid var(--button-border);
+    margin: 10px;
+}
+.wizard-form-confirm form {
+    width: 80%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
+
+.wizard-form-confirm .copy {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 220px;
+    margin: 20px auto;
+    padding: 5px 10px;
+    border: 1px solid var(--button-border);
+    border-radius: 6px;
+}
+.wizard-form-confirm .copy span {
+    font-size: 14px;
+    text-transform: uppercase;
+    color: var(--primary);
+
+}
+
+.confirm, .confirm:hover {
+    display: block;
+    width: 100px;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 30px auto;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: var(--container);
+    background-color: var(--primary);
+}

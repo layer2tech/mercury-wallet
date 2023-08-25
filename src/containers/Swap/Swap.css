@@ -1,0 +1,217 @@
+.wallet-container {
+    padding: 34px 20px;
+    background: var(--container);
+    border-radius: 4px;
+    margin-bottom: 20px;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 3px 0px;
+}
+label {
+    display: block;
+    position: relative;
+    padding-left: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-secondary-sub);
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.ConnectionSwaps {
+    text-align: left;
+}
+.collapse-content-item {
+    margin-left: 23px;
+
+}
+
+.swap.content .btn .loading#loading {
+    font-size: 14px;
+}
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+input:checked ~ .checkmark:after {
+    display: block;
+}
+.checkmark:after {
+    top: 2px;
+    left: 2px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--success);
+}
+
+.swap-header-txt {
+    margin-left: 30px;
+}
+
+.swap.content {
+    display: flex;
+    justify-content: space-between;
+}
+
+.swap.content .right {
+    width: 49%;
+}
+.swap.content .left .sub,
+.swap.content .right .sub,
+.swap.content .left h3,
+.swap.content .right h3 {
+    text-align: left;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.swap.content .left {
+    width: 49%;
+}
+.swap table  {
+    display: block;
+    margin-top: 30px;
+}
+.swap table tbody {
+    display: block;
+}
+.swap table thead tr{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+}
+.swap table thead tr td {
+    display: flex;
+    align-items: center;
+}
+.swap table thead tr td img {
+    margin-right: 10px;
+}
+.swap table thead tr td {
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-transform: uppercase;
+}
+.swap table  tr {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    align-items: center;
+    padding-bottom: 20px;
+    margin: 10px auto;
+    border-bottom: 1px solid var(--button-border);
+
+}
+.swap table tbody  tr td ,
+.swap table thead  tr td {
+    width: 50%;
+
+
+}
+
+.swap table tbody tr td .content {
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+
+}
+.swap table tbody tr td .content .txt {
+    margin-left: 10px;
+}
+.swap table tbody tr td .content .line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.swap table tbody tr td .content .line span {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 300;
+}
+.swap table tbody tr td .content .line img {
+    width:18px;
+    height:18px
+}
+.swap table tbody tr td .content span {
+    display: block;
+}
+.swap table tbody tr td:first-child {
+    text-align: left;
+}
+.swap table tbody tr td:nth-child(2) {
+    text-align: right;
+}
+.swap table tbody tr .status {
+    display: block;
+    background-color: #E4E4E4;
+    text-align: center;
+    padding: 15px 20px;
+    border-radius: 30px;
+}
+.swap table.second tbody tr td,
+.swap table.second thead tr td  {
+    text-align: center;
+}
+.swap table.second thead  tr td {
+   padding-right: 40px;
+}
+.swap table.second thead  tr {
+    border-bottom: none;
+}
+
+@media only screen and (max-width: 768px)  {
+
+    .main-header {
+        padding-left: 0;
+    }
+    .swap .subtitle {
+        margin-left: 0;
+        text-align: center;
+    }
+    .swap-header-txt,
+    .collapse-content-item {
+        margin-left: 0;
+    }
+    .collapse-content-item {
+        width: 100%;
+        display: block;
+    }
+    .collapse-content-item .txt {
+        display: block;
+    }
+    .ConnectionSwaps {
+        text-align: center;
+    }
+
+    .ConnectionSwaps label input[type='radio']:not(.switch) {
+        width: 0;
+    }
+    .collapse-content-item .txt {
+        margin-right: 0;
+    }
+    .swap.content {
+        display: block;
+
+    }
+    .swap.content .left {
+        width: 100%;
+    }
+    .swap.content .right {
+        width: 100%;
+    }
+    .swap table thead tr {
+        flex-wrap: wrap;
+        justify-content: start;
+
+    }
+}

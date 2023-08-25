@@ -1,0 +1,360 @@
+.App .container{
+    min-width: 500px;
+}
+
+/* .receiveStatecoin .subtitle {
+    color: #676767;
+    font-size: 20px;
+    text-align: left;
+    font-weight: 400;
+    padding-left: 50px;
+
+} */
+
+.receiveStatecoin.content .body-title{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.prev-next button{
+    margin-top:0px;
+    margin-bottom:0px;
+}
+
+.prev-next button.left img{
+    transform: rotate(-135deg)
+}
+.prev-next button.right img{
+    transform: rotate(45deg)
+}
+
+.receiveStatecoin-scan {
+    display: flex;
+    align-items: flex-start;
+}
+.receiveStatecoin-scan-txid .copy-btn-wrap {
+    background-color: var(--selected);
+    padding: 20px;
+}
+
+.receiveStatecoin .Body-button {
+    margin: 20px 5px;
+}
+
+.receiveStatecoin-scan-txid .copy-btn-wrap.used {
+    background-color: var(--warning-block);
+}
+
+.receiveStatecoin-scan-txid .tooltip{
+    visibility: hidden;
+    width: 350px;
+    background-color: var(--button-border);
+    color: var(--text-primary);
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.receiveStatecoin-scan-txid .tooltip-info,.receive-btns .tooltip-info{
+    visibility: hidden;
+    width: 350px;
+    background-color: var(--button-border);
+    color: var(--text-primary);
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 10px 5px 10px;
+    position: absolute;
+    z-index: 1;
+    bottom:-8px;
+    right:0px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.receiveStatecoin-scan-txid .tooltip.available{
+    width: 100px;
+}
+
+.receiveStatecoin-scan-txid .tooltip:after {
+    content: "";
+    position: fixed;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: var(--button-border) transparent transparent transparent;
+}
+.receiveStatecoin-scan-txid:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+.receiveStatecoin-scan-txid .tooltip-info:after,.receive-btns .info-container .tooltip-info:after {
+    content: "";
+    position: fixed;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: var(--button-border) transparent transparent transparent;
+}
+.receiveStatecoin-scan-txid .info-receive .info-container:hover .tooltip-info, .receive-btns .info-container:hover .tooltip-info {
+    visibility: visible;
+    opacity: 1;
+}
+
+.receiveStatecoin-scan-txid .copy-btn-wrap .address:hover {
+    cursor: pointer;
+    color: #0054f4;
+}
+.receiveStatecoin-scan-txid .copy-btn-wrap div {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.receiveStatecoin-scan-content  {
+    margin-left: 20px;
+    flex: 1;
+}
+
+.receiveStatecoin-scan-content .btns-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+@media only screen and (max-width:991px){
+    .receiveStatecoin-scan .btns-container{
+        justify-content: space-between;
+        flex-wrap:wrap;
+    }
+    .receiveStatecoin-scan .btns-container .prev-next button{
+        margin-bottom:0px;
+    }
+    .receiveStatecoin-scan .btns-container button{
+        margin-bottom:0px;
+    }
+
+    .receiveStatecoin .receive-btn{
+        margin-right:0px;
+    }
+}
+.receiveStatecoin-scan-txid .copy-btn-wrap div.info-receive{
+    display:block;
+}
+
+.receiveStatecoin-scan-txid .copy-btn-wrap div .info-container{
+    margin-right: 0px;
+    position: relative;
+}
+
+.receiveStatecoin-scan-txid .copy-btn-wrap div .info-container img{
+    height: 10px;
+    width: 10px;
+    position: absolute;
+    right: -10px;
+    top: 10px;
+
+
+}
+
+.info-container{
+    margin-right: 8px;
+    position: relative;
+}
+
+.info-container img{
+    height: 10px;
+    position: absolute;
+    right: 7px;
+    top: 10px;
+}
+
+.receiveStatecoin-scan-content .receive-btn{
+    background: var(--button-dark);
+    color: var(--button-main-text);
+    border-radius: 5px;
+    font-size:15px;
+    width:200px;
+    box-shadow: 0 0 8px 2px rgba(0, 0, 0, 0.121569)
+}
+
+.receiveStatecoin .btns-container button{
+    width:200px;
+}
+
+
+
+.receiveStatecoin .btns-container .receive-btn{
+    margin-right:25px;
+}
+
+.receiveStatecoin-scan-txid .address span {
+    display: block;
+    font-size: 16px;
+    font-weight: bold;
+    line-break: anywhere;
+    text-align: left;
+    margin-left: 10px;
+}
+
+.receiveStatecoin-scan-txid .copy-btn-wrap .address-index{
+    display: flex;
+    justify-content: space-between;
+}
+
+.receiveStatecoin-scan-txid .copy-btn-wrap .address-index span.rec-address {
+    display: block;
+    width:500px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+@media only screen and (max-width: 991px) {
+    .receiveStatecoin-scan-txid .copy-btn-wrap .address-index span.rec-address {
+        width: 250px;
+    }
+
+}
+
+@media only screen and (max-width:768px){
+    .receiveStatecoin-scan-txid .copy-btn-wrap .address-index span.rec-address{
+        width: 200px;
+    }
+}
+
+
+.receiveStatecoin-scan-txid img {
+    width: 16px;
+    height: 16px;
+}
+.receiveStatecoin-scan-ft-txt {
+    display: block;
+    text-align: center;
+    margin-top: 30px;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--primary);
+}
+
+.sendStatecoin.content .center {
+    width:75%;
+    z-index: 301;
+    position: fixed;
+    top:40%;
+    left:12%;
+    animation: fadeIn .2s;
+}
+
+@keyframes fadeIn {
+    0% {opacity:0;}
+    100% {opacity:1;}
+}
+
+.sendStatecoin.content .center .primary-btm.ghost {
+    background-color: var(--container);
+    color: var(--button-main);
+    border: 1px solid rgba(0, 0, 0, 0.121569);
+    border-radius:5px;
+    position:absolute;
+    top:7%;
+    right:3%;
+}
+
+
+@media only screen and (max-width: 991px){
+    .sendStatecoin.content .center{
+        left:13.5%;
+        width:73.5%;
+        min-width: 425px;
+    }
+}
+@media only screen and (max-width: 768px){
+    .sendStatecoin.content .center{
+        left:7%;
+        width:85%;
+        top:40%;
+        
+    }
+}
+
+.sendStatecoin.content .overlay{
+    z-index:300;
+    position:fixed;
+    top:0;
+    left:0;
+    height:100vh;
+    width:100%;
+    background-color: var(--text-secondary-sub);
+    opacity:0.4;
+}
+
+.receiveStatecoin.sendStatecoin.content .center button.btn {
+    margin-top: 20px;
+    background: var(--text-secondary-sub);
+    color: var(--button-main-text);
+    width:100%;
+}
+.receiveStatecoin.sendStatecoin.content .center button.active { 
+    background: var(--primary);
+}
+
+.receiveStatecoin .receive-bottom div:first-child {
+    flex: 1;
+    margin-bottom: 20px;
+}
+.receiveStatecoin .receive-bottom div:first-child .inputs { 
+    margin: 0;
+    width:100%;
+}
+.receiveStatecoin.sendStatecoin.content .center .receive-bottom button {
+    height: 56px;
+    padding: 0 35px;
+    margin: 0;
+}
+.receiveStatecoin .receive-bottom div:first-child .inputs input { 
+    padding: 16px;
+    border: 1px solid var(--primary);
+    text-overflow: ellipsis;
+    outline: none;
+}
+.receiveStatecoin .receive-bottom div:first-child .inputs .smalltxt {
+    color: var(--primary);
+}
+.receiveStatecoin .receive-note {
+    font-size: 20px;
+    line-height: 20px;
+    margin-bottom: 22px;
+    text-align: left;
+
+}
+
+@media only screen and (max-width: 768px) {
+    .receiveStatecoin .subtitle {
+        padding-left: 0;
+        text-align: center;
+    }
+    .receiveStatecoin-scan {
+        display: block;
+
+    }
+    .receiveStatecoin-scan-content {
+        margin-left: 0;
+    }
+}
+
+.btn.receive-btn:hover{
+    color:white;
+
+}
+
+.btn{
+    padding: .375rem .75rem !important;
+    text-align: center !important;
+    border: 1px solid transparent;
+    line-height: 1.5 !important;
+}

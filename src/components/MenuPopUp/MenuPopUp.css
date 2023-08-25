@@ -1,0 +1,60 @@
+
+.menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 300;
+}
+
+
+.filter-head {
+    border-bottom: 1px solid #D3D3D3;
+}
+
+
+.filter-options {
+    position: absolute;
+    min-width: 170px;
+    top: 3px;
+    right: 25px;
+    background-color: var(--container);
+    font-size: 14px;
+    line-height: 16px;
+    font-weight: normal;
+    color: var(--text-primary);
+    border-radius: 4px 0px 4px 4px;
+    box-shadow: 0px 2px 12px -7px var(--box-shadow);
+    z-index: 301;
+}
+
+
+.filter-options > div,
+.filter-options > label {
+  padding: 8px 10px;
+}
+
+.filter-options label {
+  display: block;
+  margin: 0;
+  text-align: left;
+}
+
+.filter-options .checkmark:after {
+  background-color: var(--text-primary);
+}
+
+.filter-options label input {
+  margin-right: 12px;
+}
+
+.filter-options .checkmark.connected{
+  top: 9px;
+  left: 16px;
+  border-color: var(--text-primary);
+}
+
+.Body-button.menu-button {
+  color: var(--text-primary);
+}

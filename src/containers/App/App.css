@@ -1,0 +1,223 @@
+/* latin */
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url(../../assets/fonts/KFOkCnqEu92Fr1MmgVxIIzIXKMny.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+/* latin */
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url(../../assets/fonts/KFOlCnqEu92Fr1MmSU5fBBc4AMP6lQ.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+/* latin */
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(../../assets/fonts/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+/* latin */
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(../../assets/fonts/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+/* latin */
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(../../assets/fonts/KFOlCnqEu92Fr1MmWUlfBBc4AMP6lQ.woff2) format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+.App {
+  font-family: "Roboto", sans-serif;
+  text-align: center;
+  background-color: var(--background);
+  padding-bottom: 20px;
+  position: relative;
+  overflow-x: hidden;
+  min-height: 100vh;
+  min-width: 500px;
+}
+
+.App .container {
+  padding: 0;
+}
+
+
+:root{
+  --dark1: #0b2b68;
+  --dark2: #121212;
+  --dark3: #202020;
+  --dark4: #e7e7e7;
+  --dark5: #e7e7e787;
+  --dark6: #e7e7e760;
+  --dark7: #0b2b68;
+  --dark8: #202020;
+  --dark9: #0b2b68;
+  --dark10: rgba(0, 0, 0, 1);
+  --dark11: #9c2b2e;
+  --dark12: #b71c1c30;
+  --dark13: #9c2b2e25;
+  --dark14: #0054f4;
+  --dark15: #388e3c;
+  --dark16: #e7e7e738;
+  --dark17: #2d2d2d;
+  --dark18: #e4dfff35;
+  --light1: #0054f4;
+  --light2: #f5f5f5;
+  --light3: #ffffff;
+  --light4: #000000;
+  --light5: #757575;
+  --light6: #666666;
+  --light7: #0f54f4;
+  --light8: #ffffff;
+  --light9: #e0e0e0;
+  --light10: #003bbe;
+  --light11: #222;
+  --light12: #ff3d00;
+  --light13: #ffccbc;
+  --light14: #ffccbc35;
+  --light15: #069;
+  --light16: #388e3c;
+  --light17: #ccc;
+  --light18: #dfeaff;
+  --light19: #e4dfff;
+
+}
+
+
+/* Default variables */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #333;
+    color: white;
+  }
+  :root:root {
+    --primary: var(--dark1);
+    --background: var(--dark2);
+    --container: var(--dark3);
+    --text-primary: var(--dark4);
+    --text-secondary: var(--dark5);
+    --text-secondary-sub: var(--dark6);
+    --button-main: var(--dark7);
+    --button-main-text: var(--text-primary);
+    --button-transparent-color: var(--text-secondary);
+    --button-border: var(--dark8);
+    --button-dark: var(--dark9);
+    --box-shadow: var(--dark10);
+    --warning-color: var(--dark11);
+    --warning-block: var(--dark12);
+    --warning-container: var(--dark13);
+    --link-color: var(--dark14);
+    --success: var(--dark15);
+    --idle: var(--dark16);
+    --selected: var(--dark17);
+    --alt-selected: var(--dark18);
+  }
+}
+
+/* manual dark mode 
+/* ❗️ keep the rules in sync with the automatic dark mode above! */
+:root:root.dark {
+  --primary: var(--dark1);
+  --background: var(--dark2);
+  --container: var(--dark3);
+  --text-primary: var(--dark4);
+  --text-secondary: var(--dark5);
+  --text-secondary-sub: var(--dark6);
+  --button-main: var(--dark7);
+  --button-main-text: var(--text-primary);
+  --button-transparent-color: var(--text-secondary);
+  --button-border: var(--dark8);
+  --button-dark: var(--dark9);
+  --box-shadow: var(--dark10);
+  --warning-color: var(--dark11);
+  --warning-block: var(--dark12);
+  --warning-container: var(--dark13);
+  --link-color: var(--dark14);
+  --success: var(--dark15);
+  --idle: var(--dark16);
+  --selected: var(--dark17);
+  --alt-selected: var(--dark18);
+}
+
+/* success: #192A4A */
+
+@media (prefers-color-scheme: light) {
+  body {
+    background: #ddd;
+    color: black;
+  }
+  :root:root {
+    --primary: var(--light1);
+    --background: var(--light2);
+    --container: var(--light3);
+    --text-primary: var(--light4);
+    --text-secondary: var(--light5);
+    --text-secondary-sub: var(--light6);
+    --button-main: var(--light7);
+    --button-main-text: var(--light8);
+    --button-transparent-color: var(--text-secondary);
+    --button-border: var(--light9);
+    --button-dark: var(--light10);
+    --box-shadow: var(--light11);
+    --warning-color: var(--light12);
+    --warning-block: var(--light13);
+    --warning-container: var(--light14);
+    --link-color: var(--light15);
+    --success: var(--light16);
+    --idle: var(--light17);
+    --selected: var(--light18);
+    --alt-selected: var(--light19);
+}
+}
+
+:root,
+:root.light {
+  --primary: var(--light1);
+  --background: var(--light2);
+  --container: var(--light3);
+  --text-primary: var(--light4);
+  --text-secondary: var(--light5);
+  --text-secondary-sub: var(--light6);
+  --button-main: var(--light7);
+  --button-main-text: var(--light8);
+  --button-transparent-color: var(--text-secondary);
+  --button-border: var(--light9);
+  --button-dark: var(--light10);
+  --box-shadow: var(--light11);
+  --warning-color: var(--light12);
+  --warning-block: var(--light13);
+  --warning-container: var(--light14);
+  --link-color: var(--light15);
+  --success: var(--light16);
+  --idle: var(--light17);
+  --selected: var(--light18);
+  --alt-selected: var(--light19);
+}
