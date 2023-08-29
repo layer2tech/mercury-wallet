@@ -31,7 +31,7 @@ jobs:
             node-version: "16.16"
         - run: npm install --force
         - name: Start local server
-          run: npm run adapters-browser & # Start the server in the background
+          run: npm run web & # Start the server in the background
         - name: Wait for server to be up
           run: |
             timeout=300 # Set the timeout value in seconds
