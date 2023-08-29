@@ -185,10 +185,7 @@ const PanelConnectivity = (props) => {
 
   const getWarning = () => {
     let block_height = callGetBlockHeight();
-    if ((block_height === null || block_height === 0) && getNetworkType() === NETWORK_TYPE.I2P) {
-      dispatch(
-        setError({ msg: "Warning: I2PD failed to start. Reverting to Tor" })
-      );
+    if ((block_height === null || block_height === 0)) {
       setNetworkType(NETWORK_TYPE.TOR);
     }
   }

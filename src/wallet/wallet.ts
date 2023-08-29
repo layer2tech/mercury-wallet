@@ -72,7 +72,7 @@ import {
   OutPoint,
 } from "./mercury/info_api";
 import { EPSClient } from "./eps";
-import { I2P_URL, POST_ROUTE, TOR_URL } from "./http_client";
+import { POST_ROUTE, TOR_URL } from "./http_client";
 import {
   getNewTorId,
   getNewTorCircuit,
@@ -108,10 +108,9 @@ declare const window: any;
 let log: any;
 log = new WrappedLogger();
 
-// Set Network Type Tor || I2P
+// Set Network Type Tor
 export enum NETWORK_TYPE {
-  TOR = "Tor",
-  I2P = "I2P",
+  TOR = "Tor"
 }
 export const mutex = new Mutex();
 export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890";
@@ -353,23 +352,15 @@ export class Wallet {
 
   async setHttpClient(networkType: string) {
     if (this.config.testing_mode !== true && !TestingWithJest()) {
-      if (networkType === NETWORK_TYPE.I2P) {
-        this.http_client = new HttpClient(I2P_URL, false);
-      } else {
         this.http_client = new HttpClient(TOR_URL, true);
         await this.set_adapter_endpoints();
-      }
     }
   }
 
   async setElectrsClient(networkType: string) {
     if (this.config.testing_mode !== true && !TestingWithJest()) {
-      if (networkType === NETWORK_TYPE.I2P) {
-        this.electrum_client = new ElectrsClient(I2P_URL, false);
-      } else {
         this.electrum_client = new ElectrsClient(TOR_URL, true);
         await this.set_adapter_endpoints();
-      }
     }
   }
 
@@ -964,13 +955,7 @@ export class Wallet {
   }
 
   newElectrumClient() {
-    let ENDPOINT;
-    if (this.networkType === NETWORK_TYPE.I2P) {
-      ENDPOINT = I2P_URL;
-    } else {
-      ENDPOINT = TOR_URL;
-    }
-
+    let ENDPOINT = TOR_URL;
     //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     if (this.config.testing_mode == true) return new MockElectrumClient();
     if (this.config.electrum_config.type == "eps")

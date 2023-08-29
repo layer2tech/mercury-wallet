@@ -28,12 +28,6 @@ export const checkForServerError = (response: any) => {
         "Tor circuit not functioning. A new circuit will be automatically generated."
       );
     }
-    if (
-      error?.message ==
-      "Error: Socks5 proxy rejected connection - HostUnreachable"
-    ) {
-      throw Error("I2P takes ~1min to initialise. Please wait...");
-    }
     throw Error("Internal Server Error:" + error?.message);
   }
 };

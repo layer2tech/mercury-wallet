@@ -49,7 +49,7 @@ const SwapStatus = (props) => {
                     }
                     {
                         props.swapStatus ?
-                            (!network==="I2P" && props.swapStatus.slice(0, 7) === "Phase 3/8" ?
+                            (props.swapStatus.slice(0, 7) === "Phase 3/8" ?
                                 (<div className="new-tor-id"><p>New Tor ID</p></div>)
                                 : (null))
                             : (null)

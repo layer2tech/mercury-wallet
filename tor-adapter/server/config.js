@@ -13,23 +13,12 @@ const TOR_CONFIG = {
   controlPort: 9061,
 };
 
-const I2P_CONFIG = {
-  ip: "localhost",
-  port: 4445,
-  //Default randomly generated control password
-  controlPassword: HASH_PASSWORD,
-  controlPort: 7650,
-};
-
 class Config {
   constructor(network) {
     this.network = network;
-
-    // Set PORT Config for Tor or I2P
+    
     if (network === "tor") {
       this.proxy = TOR_CONFIG;
-    } else {
-      this.proxy = I2P_CONFIG;
     }
 
     this.update(require("./settings.json"));
@@ -63,42 +52,6 @@ class Config {
                   );
               }
             });
-          }
-          break;
-        case "i2p_proxy":
-          if (this.network === "i2pd") {
-            Object.entries(item[1]).forEach((tp_item) => {
-              switch (tp_item[0]) {
-                case "ip":
-                  this.proxy.ip = tp_item[1];
-                  break;
-                case "port":
-                  this.proxy.port = tp_item[1];
-                  break;
-                case "controlPassword":
-                  //Only update the password if specified
-                  if (tp_item[1].length > 0) {
-                    this.proxy.controlPassword = tp_item[1];
-                  }
-                  break;
-                case "controlPort":
-                  this.proxy.controlPort = tp_item[1];
-                  break;
-                default:
-                  throw Error(
-                    "Config i2p_proxy entry " + tp_item[0] + " does not exist"
-                  );
-              }
-            });
-          }
-          break;
-
-        case "i2p_endpoints":
-          if (this.network === "i2pd") {
-            this.state_entity_endpoint =
-              item[1].state_entity_endpoint.split(",");
-            this.swap_conductor_endpoint =
-              item[1].swap_conductor_endpoint.split(",");
           }
           break;
         case "tor_endpoints":

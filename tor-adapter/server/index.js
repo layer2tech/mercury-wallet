@@ -11,8 +11,6 @@ if (!isElectron()) {
   if (isWin) {
     if (network === "tor") {
       process.argv[2] = __dirname + "/resources/win/Tor/tor.exe";
-    } else {
-      process.argv[2] = __dirname + "/resources/win/i2pd.exe";
     }
   } else if (isLinux) {
     process.argv[2] = __dirname + `/resources/linux/${network}`;
@@ -25,7 +23,7 @@ if (!isElectron()) {
   process.argv[5] = __dirname + "/resources/win/Data/Tor/geoip";
   process.argv[6] = __dirname + "/resources/win/Data/Tor/geoip6";
 } else {
-  var network = process.argv[2].includes("tor") ? "tor" : "i2pd";
+  var network = process.argv[2].includes("tor") ? "tor" : "tor";
 }
 const express = require("express");
 var geoip = require("geoip-country");
@@ -45,7 +43,7 @@ var CNClient = require("./cn_client");
 
 /***
  *
- * Adapter starts Tor or I2P
+ * Adapter starts Tor
  * - depends on binary name passed as argument
  *
  ***/
@@ -69,7 +67,6 @@ if (process.argv.length > 7) {
 
 /**
  * • PORT 3001 for Tor
- * • PORT 3002 for I2P
  */
 
 const PORT = network === "tor" ? 3001 : 3002;
@@ -79,8 +76,7 @@ console.log(`torrc: ${torrc}`);
 
 const dataDir =
   network === "tor"
-    ? path.join(logDataDir, "tor")
-    : path.join(logDataDir, "i2p");
+    ? path.join(logDataDir, "tor") : null;
 
 var Config = new require("./config");
 const config = new Config(network);
@@ -108,7 +104,7 @@ app.listen(PORT, () => {
 });
 
 /**
- * Initialising Tor or I2P
+ * Initialising Tor
  */
 
 let anon_client;

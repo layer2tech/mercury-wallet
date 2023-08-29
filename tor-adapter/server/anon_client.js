@@ -99,18 +99,11 @@ class AnonClient {
     );
     console.log("network -----------------", network);
 
-    if (start_cmd.slice(-18).includes("win") && network === "i2pd") {
-      // Check if windows to add arg differently
-      terminalPasswordArg = [`%hash-password=${this.config.controlPassword}`];
-    } else {
-      terminalPasswordArg = [
-        `--hash-password`,
-        `${this.config.controlPassword}`,
-      ];
-    }
-
-    //terminalPasswordArg = [`--hash-password`, `${this.config.controlPassword}`];
-
+    terminalPasswordArg = [
+      `--hash-password`,
+      `${this.config.controlPassword}`,
+    ];
+    
     //Get the Geo Args if required
     let geo_args = [];
 
@@ -149,15 +142,6 @@ class AnonClient {
               `${this.config.controlPort}`,
               "DataDir",
               `"${this.dataPath}"`,
-            ];
-          } else {
-            netConfigArgs = [
-              `--socksproxy.port=${this.config.port}`,
-              "--http.enabled=false",
-              "--i2pcontrol.enabled=true",
-              `--i2pcontrol.password=${this.config.controlPassword}`,
-              `--i2pcontrol.port=${this.config.controlPort}`,
-              `--datadir=${this.dataPath}`,
             ];
           }
 

@@ -54,7 +54,6 @@ function getPlatform() {
 const isDev = process.env.NODE_ENV == "development";
 
 let ta_process = undefined;
-let i2p_process = undefined;
 let resourcesPath = undefined;
 let iconPath = undefined;
 let execPath = undefined;
@@ -145,7 +144,6 @@ const tor_cmd =
     ? `${joinPath(execPath, "Tor", "tor")}`
     : `${joinPath(execPath, "tor")}`;
 
-const i2p_cmd = `${joinPath(execPath, "i2pd")}`;
 
 let term_existing = false;
 for (let i = 0; i < process.argv.length; i++) {
@@ -337,7 +335,6 @@ app.on("ready", () => {
 
   terminate_tor_process();
   terminate_mercurywallet_process(null, "tor");
-  terminate_mercurywallet_process(init_adapter, "i2p");
   // TODO: Uncomment
   // terminate_mercurywallet_process(init_lightning_adapter, null);
   createWindow();
@@ -345,7 +342,6 @@ app.on("ready", () => {
 
 app.on("window-all-closed", async () => {
   terminate_tor_process(); // ensure the tor processes are closed after s
-  terminate_mercurywallet_process(null, "i2p");
   //TODO: Uncomment
   // terminate_mercurywallet_process(init_lightning_adapter, null);
   terminate_lightning_adapter();
@@ -394,7 +390,6 @@ ipcMain.on("select-backup-file", async (event, arg) => {
 
 // You can use 'before-quit' instead of (or with) the close event
 app.on("before-quit", async function () {
-  terminate_mercurywallet_process(null, "i2p");
   terminate_mercurywallet_process(null, "tor");
   //TODO: Uncomment
   // terminate_mercurywallet_process(init_lightning_adapter, null);
@@ -425,20 +420,6 @@ async function init_adapter() {
   ta_process = fork(
     `${anon_adapter_path}`,
     [tor_cmd, ...tor_adapter_args],
-    {
-      detached: false,
-      stdio: "ignore",
-    },
-    (error, stdout, _stderr) => {
-      if (error) {
-        app.exit(error);
-      }
-    }
-  );
-
-  i2p_process = fork(
-    `${anon_adapter_path}`,
-    [i2p_cmd, ...adapter_args],
     {
       detached: false,
       stdio: "ignore",
@@ -536,9 +517,6 @@ function terminate_mercurywallet_process(init_new, network) {
     if (network === "tor") {
       command =
         'echo `ps axo "pid,ppid,command" | grep mercury | grep tor | grep -v grep`';
-    } else {
-      command =
-        'echo `ps axo "pid,ppid,command" | grep mercury | grep i2p | grep -v grep`';
     }
   }
 
@@ -591,7 +569,6 @@ function terminate_mercurywallet_process(init_new, network) {
 
 async function on_exit() {
   await kill_tor();
-  await kill_i2p();
 }
 
 async function kill_tor() {
@@ -601,12 +578,6 @@ async function kill_tor() {
   }
 }
 
-async function kill_i2p() {
-  if (i2p_process) {
-    console.log("terminating the i2p adapter process...");
-    await kill_process(i2p_process.pid);
-  }
-}
 
 async function kill_process(pid, init_new) {
   console.log(`terminating process with pid ${pid}`);

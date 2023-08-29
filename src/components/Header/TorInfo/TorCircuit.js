@@ -64,12 +64,6 @@ const TorCircuit = (props) => {
   const getTorCircuitInfo = () => {
     console.log("TorCircuit.jsx->getTorCircuitInfo()");
     if (props.online) {
-      if (props.networkType === NETWORK_TYPE.I2P) {
-        // If I2P connection selected check for I2P connection
-        // If callUpdateTorCircuitInfo doesn't throw error then there is connection
-        dispatch(setTorOnline(true));
-        return;
-      } else {
         let torcircuit_data = null;
         try {
           dispatch(callUpdateTorCircuitInfo());
@@ -85,7 +79,6 @@ const TorCircuit = (props) => {
         console.log('settingTorCircuitData->', torcircuit_array);
         console.log('before it was equal to:', torcircuitData);
         setTorcircuitData(torcircuit_array);
-      }
     } else {
       dispatch(setTorOnline(false));
       setTorLoaded(false);
@@ -110,39 +103,6 @@ const TorCircuit = (props) => {
     callResetConnectionData(dispatch);
   };
 
-  const networkSwitchAndLogOut = async (NETWORK_TYPE) => {
-    // Unsubscribe Block Height before overwriting electrs client
-    await callUnsubscribeAll();
-    await setNetworkType(NETWORK_TYPE);
-    props.setNetworkType(NETWORK_TYPE);
-    resetConnectivityData();
-  };
-
-  const setNetwork = () => {
-    if (props.networkType === NETWORK_TYPE.TOR) {
-      networkSwitchAndLogOut(NETWORK_TYPE.I2P);
-    } else {
-      networkSwitchAndLogOut(NETWORK_TYPE.TOR);
-    }
-  };
-
-  const networkSwitch = () => {
-    let networkChange;
-    if (props.networkType === NETWORK_TYPE.TOR) {
-      networkChange = NETWORK_TYPE.I2P;
-    } else {
-      networkChange = NETWORK_TYPE.TOR;
-    }
-
-    dispatch(
-      setWarning({
-        title: `Network Switch: ${props.networkType} -> ${networkChange}`,
-        msg: `Before switching networks, please make sure that you do not have any active swaps. Would you like to switch networks now?`,
-        onConfirm: setNetwork,
-      })
-    );
-  };
-
   //////////////////////////////////////////////////////////////////////////////////////
 
   return (
@@ -150,7 +110,6 @@ const TorCircuit = (props) => {
       <NetworkSwitch
         newWallet={false}
         networkType={props.networkType}
-        onClick={networkSwitch}
       />
       {props.networkType === NETWORK_TYPE.TOR ? (
         <div className="dropdown-content">

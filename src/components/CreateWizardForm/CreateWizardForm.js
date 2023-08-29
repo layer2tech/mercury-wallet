@@ -57,18 +57,6 @@ const CreateWizardForm = (props) => {
     }
   };
 
-  const routeNetworkSwitch = () => {
-    let networkType = '';
-    if (routeNetwork === NETWORK_TYPE.TOR) {
-      networkType = NETWORK_TYPE.I2P;
-    } else {
-      networkType = NETWORK_TYPE.TOR;
-    }
-    props.setStateWalletNetwork(networkType);
-    setRouteNetwork(networkType);
-    setNetworkType(networkType);
-  }
-
   useEffect(() => {
     props.setStateWalletNetwork(NETWORK_TYPE.TOR);
   }, []);
