@@ -29,7 +29,7 @@ Cypress.Commands.add("logout", () => {
 
 Cypress.Commands.add("login", () => {
   cy.visit("/");
-  cy.get("[data-cy=create-wallet-btn]").click();
+  cy.get("[data-cy=create-wallet-btn-create]").click();
   cy.get("[data-cy=landing-continue-btn]").click();
   cy.get("[data-cy=network-btn-testnet]").click();
   cy.get("[data-cy=c-n-w-checkbox]").click();
@@ -45,7 +45,7 @@ Cypress.Commands.add("login", () => {
     .should("be.visible")
     .type("MercuryWallet");
   cy.get("[data-cy=cwf-wallet-agreement-input]").should("be.visible").click();
-  cy.get("[data-cy=cwf-wallet-create-btn]").click();
+  cy.get("[data-cy=cwf-wallet-create-btn]").click({ multiple: true });
 
   cy.get("[data-cy=seed-phrase]")
     .get("input")

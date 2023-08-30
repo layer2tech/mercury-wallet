@@ -181,17 +181,7 @@ const CreateWizardForm = (props) => {
             <p data-cy="recovery-error">{errors.password_repeat.message}</p>
           )}
         </div>
-
-        <div className="inputs-item">
-          <p>Select routing network type the wallet should be restored with (By default Tor):</p>
-        </div>
-        <div className="inputs-item network-switch-new-wallet restore-network">
-          <NetworkSwitch 
-            newWallet={true}
-            networkType={routeNetwork}
-            onClick={routeNetworkSwitch}
-          />
-        </div>
+        
         <div className="inputs-item checkbox">
           <input
             data-cy="cwf-wallet-agreement-input"

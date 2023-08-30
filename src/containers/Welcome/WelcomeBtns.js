@@ -2,10 +2,10 @@ import plus from "../../assets/images/plus-black.png";
 import restore from "../../assets/images/restore-img.png";
 import check from "../../assets/images/icon-action-check_circle.png";
 
-const WelcomeButton = ({ text, image, isChecked, onClick }) => {
+const WelcomeButton = ({ text, image, isChecked, onClick, name }) => {
   return (
     <div
-      data-cy="create-wallet-btn"
+      data-cy={`create-wallet-btn-${name}`}
       onClick={onClick}
       className={`relative rounded text-left text-xl cursor-pointer ${
         isChecked ? "selected" : ""
@@ -26,6 +26,7 @@ const WalletCreationOptions = ({ checked, changeCheckbox }) => {
   return (
     <div data-cy="welcome-btns-list" className="flex items-center justify-between mt-5">
       <WelcomeButton
+        name="create"
         text="Create New Wallet"
         image={plus}
         isChecked={checked === 1}
@@ -34,12 +35,14 @@ const WalletCreationOptions = ({ checked, changeCheckbox }) => {
 
       <WelcomeButton
         text="Restore From Seed/Backup"
+        name="restore"
         image={restore}
         isChecked={checked === 2}
         onClick={() => handleCheckboxChange(2)}
       />
 
       <WelcomeButton
+        name="load"
         text="Load Existing Wallet"
         image={restore} // You can replace this with the appropriate image
         isChecked={checked === 3}
