@@ -45,7 +45,7 @@ jobs:
               fi
             done
         - name: Run e2e tests
-          uses: cypress-io/github-action@v5
+          uses: cypress-io/github-action@v3
           with:
             browser: chrome
             install: false
