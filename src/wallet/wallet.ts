@@ -1066,10 +1066,8 @@ export class Wallet {
         statecoin.tx_backup === null &&
         !this.config.testing_mode
       ) {
-        if (!statecoin.backup_confirm) {
           this.statecoins.setConfirmingBackup(statecoin.shared_key_id);
           this.depositConfirm(statecoin.shared_key_id);
-        }
       }
     });
   }
