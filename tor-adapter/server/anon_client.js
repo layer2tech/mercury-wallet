@@ -134,7 +134,7 @@ class AnonClient {
             stdout = stdout.split("\n")[1];
           }
           let hashedPassword = stdout.replace(/\n*$/, "");
-  
+
           // Sets config when launching network
           if (network === "tor") {
             netConfigArgs = [
@@ -160,7 +160,7 @@ class AnonClient {
               `--datadir=${this.dataPath}`,
             ];
           }
-  
+
           /* *
            * ToDo: Check Hash password is in proper use for Tor
            *  - the hash in netConfigArgs has been removed
@@ -183,7 +183,7 @@ class AnonClient {
             const message = `${network} stdout: ` + data.toString();
             console.log(message);
           });
-  
+
           this.process.stderr.on("data", function (data) {
             const message = `${network} stderr: ` + data.toString();
             console.error(message);
@@ -194,8 +194,7 @@ class AnonClient {
           );
         }
       );
-    }
-    catch (e) {
+    } catch (e) {
       throw e;
     }
   }

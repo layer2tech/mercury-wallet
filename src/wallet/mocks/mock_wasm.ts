@@ -27,6 +27,9 @@ export class MockWasm {
   convert_bigint_to_client_curv_version(_json_str: string, _field_name: string) {
     return ""
   }
+  solve_pow_challenge(_challenge: string){
+    return "861d22237d8444f1ba3e4cd7dd418560"
+  }
 }
 
 

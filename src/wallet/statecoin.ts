@@ -106,10 +106,12 @@ export class StateCoinList {
               Buffer.from(tx_backup_any.outs[0].script),
               tx_backup_any.outs[0].value
             );
-            tx_backup.addOutput(
-              Buffer.from(tx_backup_any.outs[1].script),
-              tx_backup_any.outs[1].value
-            );
+            if (tx_backup_any.outs[1]) {
+              tx_backup.addOutput(
+                Buffer.from(tx_backup_any.outs[1].script),
+                tx_backup_any.outs[1].value
+              );
+            }
           } else {
             tx_backup.addOutput(
               Buffer.from(
@@ -117,12 +119,14 @@ export class StateCoinList {
               ),
               tx_backup_any.outs[0].value
             );
-            tx_backup.addOutput(
-              Buffer.from(
-                Object.values(tx_backup_any.outs[1].script as object)
-              ),
-              tx_backup_any.outs[1].value
-            );
+            if (tx_backup_any.outs[1]) {
+              tx_backup.addOutput(
+                Buffer.from(
+                  Object.values(tx_backup_any.outs[1].script as object)
+                ),
+                tx_backup_any.outs[1].value
+              );
+            }
           }
         }
         item.tx_backup = tx_backup;
@@ -224,7 +228,8 @@ export class StateCoinList {
         item.status === STATECOIN_STATUS.WITHDRAWING ||
         item.status === STATECOIN_STATUS.SWAPLIMIT ||
         item.status === STATECOIN_STATUS.EXPIRED ||
-        item.status === STATECOIN_STATUS.DUPLICATE
+        item.status === STATECOIN_STATUS.DUPLICATE ||
+        item.status === STATECOIN_STATUS.SENDING
       ) {
         // Add all but withdrawn or awaiting withdrawal coins to total balance
         if (
@@ -359,6 +364,20 @@ export class StateCoinList {
     let coin = this.getCoin(shared_key_id);
     if (coin) {
       coin.setAutoSwap(true);
+    }
+  }
+
+  setCoinSending(shared_key_id: string) {
+    let coin = this.getCoin(shared_key_id);
+    if (coin) {
+      coin.setSending();
+    }
+  }
+
+  setCoinAvailable(shared_key_id: string) {
+    let coin = this.getCoin(shared_key_id);
+    if (coin) {
+      coin.setConfirmed();
     }
   }
 
@@ -530,6 +549,8 @@ export enum STATECOIN_STATUS {
   AWAITING_SWAP = "AWAITING_SWAP",
   // Coin currently carrying out swap protocol
   IN_SWAP = "IN_SWAP",
+  // Coin has been sent but not yet received.
+  SENDING = "SENDING",
   // Coin used to belonged to wallet but has been transferred
   SPENT = "SPENT",
   // A withdrawal transaction has been broadcast but has not yet been confirmed
@@ -734,6 +755,9 @@ export class StateCoin {
   }
   setInTransfer() {
     this.status = STATECOIN_STATUS.IN_TRANSFER;
+  }
+  setSending() {
+    this.status = STATECOIN_STATUS.SENDING;
   }
   setSpent() {
     this.status = STATECOIN_STATUS.SPENT;
@@ -1029,4 +1053,18 @@ export interface ExpiryData {
   confirmations: number;
 }
 
-export interface InclusionProofSMT {}
+export interface Token {
+  id: string,
+  btc: string,
+  ln: string
+}
+
+export interface TokenData {
+  token: Token,
+  values: number[]
+}
+
+
+export interface InclusionProofSMT {
+
+}

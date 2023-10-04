@@ -26,15 +26,15 @@
     }
   },
   "repository": "github:layer2tech/mercury-wallet",
-  "version": "v0.8.14",
+  "version": "v0.9.1",
   "license": "MIT/Apache-2.0",
   "homepage": "./",
   "main": "public/electron.js",
   "scripts": {
     "e2e": "testcafe \"electron:.\" \"./src/e2e/**/*.js\"",
     "install-local": "yarn add file:./tor-adapter",
-    "start": "node ./setup && react-app-rewired start",
-    "adapters-browser": "concurrently \"node ./setup && react-app-rewired start\" \" npm run tor-adapter\" ",
+    "start": "node ./setup && react-app-rewired start --trace-deprecation",
+    "adapters-browser": "concurrently \"node ./setup && react-app-rewired start\" \" npm run tor-adapter\" \" npm run lightning-adapter\"",
     "prebuild": "DATE=`date` && YEAR=${DATE##* } && MERC_YEAR=`jq .build.copyright package.json | awk '{print $3}'` && if [ $YEAR -ne $MERC_YEAR ]; then echo 'package.json prebuild - expected .build.copyright year' $YEAR ', got' $MERC_YEAR '- please update year' && return 1; fi",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test --maxWorkers 2",
@@ -53,12 +53,14 @@
     "app-macos-local-test": "yarn install-local && npm install --force && yarn build && DEBUG=electron-builder electron-builder -m -p never",
     "app-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
     "cypress": "cypress open",
-    "tor-adapter": "cd tor-adapter && npm start"
+    "tor-adapter": "cd tor-adapter && npm start",
+    "lightning-adapter": "cd lightning-adapter && npm start"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@testing-library/cypress": "^8.0.3",
     "@testing-library/react": "^12.1.2",
-    "@types/jest": "^29.0.0",
+    "@types/jest": "^27.5.2",
     "@types/uuid": "^8.3.0",
     "concurrently": "^5.3.0",
     "cypress": "^11.0.0",
@@ -75,20 +77,23 @@
     "react-app-rewired": "^2.2.1",
     "react-scripts": "^5.0.1",
     "sinon": "^13.0.1",
+    "ts-jest": "^27.1.5",
+    "ts-loader": "^9.4.2",
+    "ts-node": "^10.9.1",
     "typescript": "^4.7.4",
     "wait-on": "^5.2.0",
     "wasm-loader": "^1.3.0"
   },
   "dependencies": {
-    "@aguycalled/electrum-client-js": "^0.1.9",
+    "@aguycalled/electrum-client-js": "^0.1.14",
     "@electron/remote": "^2.0.7",
     "@happy-dom/jest-environment": "^6.0.4",
     "@psf/bip32-utils": "^1.0.4",
     "@reduxjs/toolkit": "^1.4.0",
     "@types/app-root-dir": "^0.1.0",
     "@types/node": "^14.14.13",
-    "@typescript-eslint/eslint-plugin": "^5.33.0",
-    "@typescript-eslint/parser": "^5.33.0",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
     "alert": "^5.0.10",
     "app-root-dir": "^1.0.2",
     "assert": "^2.0.0",
@@ -118,7 +123,6 @@
     "electron-debug": "^3.2.0",
     "electron-devtools-installer": "^3.1.1",
     "electron-log": "^4.3.1",
-    "electron-root-path": "^1.0.16",
     "electron-store": "^7.0.1",
     "eslint-plugin-react-hooks": "^4.2.0",
     "fix-path": "^3.0.0",
@@ -131,6 +135,7 @@
     "levenary": "^1.1.1",
     "limiter": "^2.1.0",
     "lodash.clonedeep": "^4.5.0",
+    "mercury-wallet-lightning-adapter": "file:./lightning-adapter",
     "mercury-wallet-tor-adapter": "file:./tor-adapter",
     "moment": "^2.29.1",
     "msgpack-lite": "^0.1.26",
@@ -166,7 +171,7 @@
     "suppress-warnings": "^1.0.2",
     "testcafe": "^1.14.2",
     "testcafe-browser-provider-electron": "^0.0.16",
-    "ts-jest": "^27.1.5",
+    "tls": "^0.0.1",
     "typeforce": "^1.11.3",
     "url": "^0.11.0",
     "uuid": "^8.3.2",
@@ -249,7 +254,7 @@
     ]
   },
   "resolutions": {
-    "**/@typescript-eslint/eslint-plugin": "^5.33.0",
-    "**/@typescript-eslint/parser": "^5.33.0"
+    "**/@typescript-eslint/eslint-plugin": "^5.0.0",
+    "**/@typescript-eslint/parser": "^5.0.0"
   }
 }

@@ -382,6 +382,12 @@ ol.go2441762052 {
     margin-top: 30px;
 }
 
+.primary-btm.ghost {
+    background-color: var(--container);
+    color: var(--button-main);
+    border: 1px solid rgba(0, 0, 0, 0.121569);
+}
+
 .go2067797667:before {
     color: var(--container) !important;
     height: 20px;
@@ -445,8 +451,8 @@ ol.go2441762052 {
         align-items: end;
     }
     .deposit-scan img:first-child {
-        width: 50px;
-        height: 50px;
+        width: 30px;
+        height: 30px;
     }
     .deposit-scan-content {
         padding: 0;

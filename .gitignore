@@ -19,3 +19,8 @@ tor/tor/keys/
 tor-adapter-log/
 i2p/
 
+lightning.db
+lightning-mock.db
+channel_manager_data.bin
+network_graph_data.bin
+tor-adapter/server/tor

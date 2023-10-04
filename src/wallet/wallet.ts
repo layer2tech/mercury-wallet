@@ -20,7 +20,7 @@ import {
 } from "./";
 import { ElectrsClient } from "./electrs";
 import { ElectrsLocalClient } from "./electrs_local";
-
+const crypto = require("crypto");
 import {
   txCPFPBuild,
   FEE,
@@ -29,7 +29,13 @@ import {
   proofKeyFromXpub,
 } from "./util";
 import { MasterKey2 } from "./mercury/ecdsa";
-import { depositConfirm, depositInit } from "./mercury/deposit";
+import {
+  depositConfirm,
+  depositInit,
+  tokenDepositInit,
+  tokenInit,
+  tokenVerify,
+} from "./mercury/deposit";
 import {
   withdraw,
   withdraw_init,
@@ -54,6 +60,7 @@ import { Config } from "./config";
 import { Storage, TestingWithJest } from "../store";
 import { groupInfo, swapDeregisterUtxo } from "./swap/info_api";
 import { addRestoredCoinDataToWallet, recoverCoins } from "./recovery";
+import axios from "axios";
 
 import {
   delay,
@@ -78,7 +85,10 @@ import { handleErrors } from "../error";
 import WrappedLogger from "../wrapped_logger";
 import Semaphore from "semaphore-async-await";
 import isElectron from "is-electron";
+import { TokenData } from "./statecoin";
 import { LDKClient, LIGHTNING_POST_ROUTE } from "./ldk_client";
+import { Channel, ChannelInfo, ChannelList } from "./channel";
+import { callGetUnspentStatecoins } from "../features/WalletDataSlice";
 
 export const MAX_ACTIVITY_LOG_LENGTH = 10;
 const MAX_SWAP_SEMAPHORE_COUNT = 100;
@@ -101,7 +111,7 @@ log = new WrappedLogger();
 // Set Network Type Tor || I2P
 export enum NETWORK_TYPE {
   TOR = "Tor",
-  I2P = "I2P"
+  I2P = "I2P",
 }
 export const mutex = new Mutex();
 export const MOCK_WALLET_PASSWORD = "mockWalletPassword_1234567890";
@@ -143,11 +153,6 @@ export interface Warning {
   show: boolean;
 }
 
-export interface Channel {
-  id: string;
-  amt: Number;
-}
-
 // Wallet holds BIP32 key root and derivation progress information.
 export class Wallet {
   name: string;
@@ -158,7 +163,7 @@ export class Wallet {
   mnemonic: string;
   account: any;
   statecoins: StateCoinList;
-  channels: Channel[];
+  channels: ChannelList;
   activity: ActivityLog;
   http_client: HttpClient | MockHttpClient;
   electrum_client:
@@ -174,6 +179,7 @@ export class Wallet {
   tor_circuit: TorCircuit[];
   warnings: Warning[];
   statechain_id_set: Set<string>;
+  tokens: TokenData[];
   wasm: any;
   saveMutex: Mutex;
 
@@ -182,6 +188,8 @@ export class Wallet {
   activityLogItems: any[];
   swappedStatecoinsFundingOutpointMap: Map<string, StateCoin[]>;
   networkType: string;
+
+  nodeId: string | undefined;
 
   constructor(
     name: string,
@@ -192,8 +200,9 @@ export class Wallet {
     http_client: any = undefined,
     wasm: any = undefined,
     storage_type: string | undefined = undefined,
-    networkType: string | undefined = undefined,
+    networkType: string | undefined = undefined
   ) {
+    this.nodeId = "";
     this.wasm = null;
     this.name = name;
     this.password = password;
@@ -203,11 +212,12 @@ export class Wallet {
     this.mnemonic = mnemonic;
     this.account = account;
     this.statecoins = new StateCoinList();
-    this.channels = [];
+    this.channels = new ChannelList();
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
 
     this.activity = new ActivityLog();
-    if (networkType === undefined){
+
+    if (networkType === undefined) {
       this.networkType = NETWORK_TYPE.TOR;
     } else {
       this.networkType = networkType;
@@ -223,16 +233,23 @@ export class Wallet {
     }
 
     this.lightning_client = new LDKClient();
+
     this.electrum_client = this.newElectrumClient();
 
     this.block_height = 0;
     this.current_sce_addr = "";
+    this.nodeId = "";
 
-    this.warnings = [{ name: "swap_punishment", show: true }, { name: "switch_network", show: true }];
+    this.warnings = [
+      { name: "swap_punishment", show: true },
+      { name: "switch_network", show: true },
+    ];
 
     this.storage = new Storage(`wallets/${this.name}/config`, storage_type);
 
     this.statechain_id_set = new Set();
+
+    this.tokens = [];
 
     this.tor_circuit = [];
 
@@ -334,7 +351,6 @@ export class Wallet {
     await this.http_client.post(POST_ROUTE.TOR_ENDPOINTS, endpoints_config);
   }
 
-
   async setHttpClient(networkType: string) {
     if (this.config.testing_mode !== true && !TestingWithJest()) {
       if (networkType === NETWORK_TYPE.I2P) {
@@ -345,7 +361,6 @@ export class Wallet {
       }
     }
   }
-
 
   async setElectrsClient(networkType: string) {
     if (this.config.testing_mode !== true && !TestingWithJest()) {
@@ -358,13 +373,28 @@ export class Wallet {
     }
   }
 
-  async createInvoice(amtInSats: number, invoiceExpirysecs: number, description: string) {
+  async createInvoice(
+    amtInSats: number,
+    invoiceExpirysecs: number,
+    description: string
+  ) {
+    const address = this.account.nextChainAddress(1);
+    await this.saveKeys();
+    const proofKey = this.getBIP32forBtcAddress(address);
+    let privkeyHex = "";
+    if (proofKey && proofKey.privateKey) {
+      privkeyHex = proofKey.privateKey.toString("hex");
+    }
     let invoice_config = {
-      amt_in_sats: amtInSats,
+      amount_in_sats: amtInSats,
       invoice_expiry_secs: invoiceExpirysecs,
       description: description,
+      privkey_hex: privkeyHex,
     };
-    return this.lightning_client.post(LIGHTNING_POST_ROUTE.GENERATE_INVOICE, invoice_config);
+    return LDKClient.post(
+      LIGHTNING_POST_ROUTE.GENERATE_INVOICE,
+      invoice_config
+    );
   }
 
   // Generate wallet form mnemonic. Testing mode uses mock State Entity and Electrum Server.
@@ -404,7 +434,14 @@ export class Wallet {
   // Generate wallet with random mnemonic.
   static buildFresh(testing_mode: true, network: Network): Wallet {
     const mnemonic = bip39.generateMnemonic();
-    return Wallet.fromMnemonic("test", "", mnemonic, DEFAULT_NETWORK_TYPE, network, testing_mode);
+    return Wallet.fromMnemonic(
+      "test",
+      "",
+      mnemonic,
+      DEFAULT_NETWORK_TYPE,
+      network,
+      testing_mode
+    );
   }
 
   // Startup wallet with some mock data. Interations with server may fail since data is random.
@@ -473,13 +510,20 @@ export class Wallet {
     storage_type: string | undefined = undefined
   ): Wallet {
     try {
-      let networkType = (json_wallet.networkType === undefined) ? DEFAULT_NETWORK_TYPE : json_wallet.networkType;
-      
-      if(isElectron()){
-        if(json_wallet.config.electrum_config.host.includes('testnet')){
-          json_wallet.config.network = bitcoin.networks.testnet
+      let networkType =
+        json_wallet.networkType === undefined
+          ? DEFAULT_NETWORK_TYPE
+          : json_wallet.networkType;
+
+      if (isElectron()) {
+        // An issue occurs with reloading the networks so check what network it is and give it again.
+        let json_wallet_network = json_wallet.config.network.bech32;
+        if (json_wallet_network === "bcrt") {
+          json_wallet.config.network = bitcoin.networks.regtest;
+        } else if (json_wallet_network === "tb") {
+          json_wallet.config.network = bitcoin.networks.testnet;
         } else {
-          json_wallet.config.network = bitcoin.networks.bitcoin
+          json_wallet.config.network = bitcoin.networks.bitcoin;
         }
       }
 
@@ -499,26 +543,28 @@ export class Wallet {
         undefined,
         undefined,
         storage_type,
-        json_wallet.networkType,
+        json_wallet.networkType
       );
 
-      
       // Deals with old wallet files, migrating statecoin data into the new format
       new_wallet.storage.loadStatecoinsQuick(json_wallet);
 
       new_wallet.statecoins = StateCoinList.fromJSON(json_wallet.statecoins);
 
-
-      if(typeof(new_wallet.storage.store.path) !== "undefined"){
+      if (typeof new_wallet.storage.store.path !== "undefined") {
         // Delete swap coins from memory
-        deleteKeys(json_wallet, ["swapped_statecoins_obj", "swapped_ids", "statecoins_obj"]);
+        deleteKeys(json_wallet, [
+          "swapped_statecoins_obj",
+          "swapped_ids",
+          "statecoins_obj",
+        ]);
       }
-
 
       new_wallet.activity = ActivityLog.fromJSON(json_wallet.activity);
 
       new_wallet.current_sce_addr = json_wallet.current_sce_addr;
 
+      if (json_wallet.tokens) new_wallet.tokens = json_wallet.tokens;
       if (json_wallet.warnings !== undefined)
         new_wallet.warnings = json_wallet.warnings;
       // Make sure properties added to the wallet are handled
@@ -551,7 +597,7 @@ export class Wallet {
     await this.electrum_client.unsubscribeAll();
   }
 
-  async unsubscribeAll(){
+  async unsubscribeAll() {
     await this.electrum_client.unsubscribeAll();
   }
 
@@ -583,6 +629,8 @@ export class Wallet {
   }
 
   save_nomutex() {
+    console.log("SAVING WALLET AS ->", this.config.network);
+
     let wallet_json = cloneDeep(this);
     this.storage.storeWallet(wallet_json);
     wallet_json = null;
@@ -654,8 +702,133 @@ export class Wallet {
     this.clearFundingOutpointMap();
   }
 
-  async saveChannels(channels: Channel[]) {
-    this.channels = channels;
+  saveChannels(channels: ChannelInfo[]) {
+    // TO DO:
+    // Need to map channelInfo from API to correct channel saved in wallet
+    // Need an ID saved that matches to ChannelInfo to ChannelFunding
+    // channels.map((channel) => {});
+  }
+
+  async validatePeerNode(peerNode: string): Promise<any> {
+    const peerNodeRegex = /^([0-9a-f]+)@([^:]+):([0-9]+)$/i;
+    const match = peerNode.match(peerNodeRegex);
+    if (!match) {
+      throw new Error("Peer node ID is in an incorrect format");
+    }
+    const [, pubkey, host, port] = match;
+    if (!pubkey || !host || !port) {
+      throw new Error("Unable to find pubkey, host or port from Peer Node ID");
+    }
+    const parsedPort = parseInt(port, 10);
+    if (isNaN(parsedPort)) {
+      throw new Error("Invalid port number");
+    }
+    return { pubkey, host, port: parsedPort };
+  }
+
+  convertToSatoshi(amount: number) {
+    // convert mBTC to satoshi
+    return amount * 100000;
+  }
+
+  async createChannel(amount: number, peerNode: string) {
+    console.log("[wallet.ts] - createChannel");
+    console.log(
+      `[wallet.ts] - values: amount:${amount}, peerNode: ${peerNode}`
+    );
+    // Validation ////////////////////////////////////////////////////////
+    const { pubkey, host, port } = await this.validatePeerNode(peerNode);
+
+    // Generate deposit address details //////////////////////////////////
+    const address = this.account.nextChainAddress(1);
+    await this.saveKeys();
+    const proofKey = this.getBIP32forBtcAddress(address);
+    const addressScript = bitcoin.address.toOutputScript(
+      address,
+      this.config.network
+    );
+    const privkey = proofKey.toWIF();
+    console.log("Generated testnet address:", address);
+    console.log("Amount value passed for channel create:", amount);
+    console.log("Private key for channel create:", privkey);
+
+    // Save channel details to memory ////////////////////////////////////
+    this.channels.addChannel(
+      proofKey.publicKey.toString("hex"),
+      address,
+      this.convertToSatoshi(amount),
+      this.version,
+      pubkey,
+      host,
+      port
+    );
+
+    console.log("Subscribed to script hash for p_addr:", address);
+    this.electrum_client.scriptHashSubscribe(
+      addressScript,
+      async (_status: any) => {
+        console.log("Script hash status change for p_addr:", address);
+        console.log("BTC received.");
+        console.log("Attempting to change the channel information.");
+        console.log("Check script hash unspent:");
+
+        const fundingTxData =
+          await this.electrum_client.getScriptHashListUnspent(addressScript);
+        const txData = fundingTxData[0];
+
+        if (txData) {
+          const txid = txData.tx_hash;
+          const vout = txData.tx_pos;
+          const block = txData.height ?? null;
+          const value = txData.value;
+
+          // Save funding details to event manager, only when event manager has valid txid details can we open a channel
+          this.lightning_client
+            .setTxData({
+              txid,
+              payment_address: address,
+            })
+            .then((res) => {
+              if (res.status === 200) {
+                this.lightning_client
+                  .connectToPeer({ pubkey, host, port })
+                  .then((res) => {
+                    // connected to peer
+                    if (res.status === 200) {
+                      // now connect to channel
+                      this.lightning_client
+                        .createChannel({
+                          pubkey,
+                          amount: amount, // keep amounts in sats when giving to lightning_client
+                          push_msat: 0,
+                          channelType: "Private",
+                          host,
+                          port,
+                          channel_name: "",
+                          wallet_name: this.name,
+                          privkey,
+                          paid: true,
+                          payment_address: address,
+                          funding_txid: txid,
+                        })
+                        .then((res) => {
+                          console.log("Final connect to channel successful.");
+                        });
+                      this.electrum_client.scriptHashUnsubscribe(addressScript);
+                    }
+                  });
+              } else {
+                console.log("Still waiting for TX data");
+              }
+            });
+        }
+      }
+    );
+    return address;
+  }
+
+  async sendPayment(invoiceString: string) {
+    return this.lightning_client.sendPayment({ invoice: invoiceString });
   }
 
   async saveActivityLog() {
@@ -697,6 +870,7 @@ export class Wallet {
     let wallet_json = store.getWalletDecrypted(wallet_name, password);
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+
     wallet.setActive();
     return wallet;
   }
@@ -716,6 +890,10 @@ export class Wallet {
     }
     wallet_json.password = password;
     let wallet = Wallet.fromJSON(wallet_json, testing_mode);
+
+    let channelsInfo = await wallet.lightning_client.getChannels(wallet.name);
+    wallet.saveChannels(channelsInfo);
+
     await wallet.save();
     wallet.setActive();
     return wallet;
@@ -772,9 +950,22 @@ export class Wallet {
     return n_recovered;
   }
 
+  newHttpClient(http_client: HttpClient | MockHttpClient) {
+    if (http_client) {
+      return http_client;
+    }
+    if (this.config.testing_mode === true) {
+      return new MockHttpClient();
+    } else {
+      let http = new HttpClient("http://localhost:3001", true);
+      this.set_adapter_endpoints();
+      return http;
+    }
+  }
+
   newElectrumClient() {
     let ENDPOINT;
-    if(this.networkType === NETWORK_TYPE.I2P){
+    if (this.networkType === NETWORK_TYPE.I2P) {
       ENDPOINT = I2P_URL;
     } else {
       ENDPOINT = TOR_URL;
@@ -783,11 +974,11 @@ export class Wallet {
     //return this.config.testing_mode ? new MockElectrumClient() : new ElectrumClient(this.config.electrum_config);
     if (this.config.testing_mode == true) return new MockElectrumClient();
     if (this.config.electrum_config.type == "eps")
-      return new EPSClient( ENDPOINT);
+      return new EPSClient(ENDPOINT);
     if (this.config.electrum_config.type == "electrs_local")
-      return new ElectrsLocalClient( ENDPOINT );
+      return new ElectrsLocalClient(ENDPOINT);
     if (this.config.electrum_config.protocol == "http")
-      return new ElectrsClient( ENDPOINT );
+      return new ElectrsClient(ENDPOINT);
 
     return new ElectrumClient(this.config.electrum_config);
   }
@@ -963,7 +1154,7 @@ export class Wallet {
     return this.block_height;
   }
 
-  resetBlockHeight(){
+  resetBlockHeight() {
     this.block_height = 0;
   }
 
@@ -1066,10 +1257,8 @@ export class Wallet {
         statecoin.tx_backup === null &&
         !this.config.testing_mode
       ) {
-        if (!statecoin.backup_confirm) {
           this.statecoins.setConfirmingBackup(statecoin.shared_key_id);
           this.depositConfirm(statecoin.shared_key_id);
-        }
       }
     });
   }
@@ -1135,25 +1324,22 @@ export class Wallet {
       // check if in mempool and confirmed
       if (statecoin.status === STATECOIN_STATUS.IN_MEMPOOL) {
         let txid = statecoin.funding_txid;
-          if (txid != null) {
-            const tx_data: any = this.electrum_client.getTransaction(txid);
-              if (
-                tx_data?.confirmations != null &&
-                tx_data.confirmations >= 0
-              ) { 
-                this.statecoins.setCoinUnconfirmed(
-                  statecoin.shared_key_id,
-                  tx_data
-                );
-            }
-              if (
-                tx_data?.confirmations != null &&
-                tx_data.confirmations >= this.config.required_confirmations
-              ) { 
-                  statecoin.setConfirmed();
-                  this.saveStateCoin(statecoin);
-            }
+        if (txid != null) {
+          const tx_data: any = this.electrum_client.getTransaction(txid);
+          if (tx_data?.confirmations != null && tx_data.confirmations >= 0) {
+            this.statecoins.setCoinUnconfirmed(
+              statecoin.shared_key_id,
+              tx_data
+            );
           }
+          if (
+            tx_data?.confirmations != null &&
+            tx_data.confirmations >= this.config.required_confirmations
+          ) {
+            statecoin.setConfirmed();
+            this.saveStateCoin(statecoin);
+          }
+        }
       }
     });
   }
@@ -1359,9 +1545,7 @@ export class Wallet {
         undefined,
         false
       );
-    } else if (
-      bresponse.includes("insufficient fee")
-    ) {
+    } else if (bresponse.includes("insufficient fee")) {
       statecoin.setBackupBelowMinFee();
     }
   }
@@ -1399,9 +1583,7 @@ export class Wallet {
         undefined,
         false
       );
-    } else if (
-      err.includes("insufficient fee")
-    ) {
+    } else if (err.includes("insufficient fee")) {
       statecoin.setBackupBelowMinFee();
     }
   }
@@ -1602,9 +1784,11 @@ export class Wallet {
     );
 
     // sign tx
-    txb_cpfp.sign(0, ec_pair, null!, null!, backup_tx_data.output_value);
+    txb_cpfp.signAllInputs(ec_pair);
+    txb_cpfp.validateSignaturesOfAllInputs();
+    txb_cpfp.finalizeAllInputs();
 
-    let cpfp_tx = txb_cpfp.build();
+    let cpfp_tx = txb_cpfp.extractTransaction();
 
     // add CPFP tx to statecoin
     for (let i = 0; i < this.statecoins.coins.length; i++) {
@@ -1625,6 +1809,69 @@ export class Wallet {
     }
 
     return true;
+  }
+
+  getToken(token_id: string) {
+    let token = this.tokens.filter((item) => item.token.id === token_id);
+    if (token[0]) {
+      return token[0];
+    } else {
+      return null;
+    }
+  }
+
+  getTokens() {
+    return this.tokens;
+  }
+
+  spendToken(token_id: string, amount: number) {
+    let token = this.getToken(token_id);
+    if (token) {
+      let values = Array.from(token.values);
+      let index = values.indexOf(amount);
+      values.splice(index, 1);
+      this.deleteToken(token_id);
+      let updated_token = {
+        token: token.token,
+        values: values,
+      };
+      this.addToken(updated_token);
+    }
+
+    this.save();
+  }
+
+  //Add token to wallet
+  addToken(token: TokenData) {
+    this.tokens.push(token);
+    this.save();
+    return token;
+  }
+
+  deleteTokenByAddress(lnAddress: string) {
+    console.log("[wallet.ts]: deleteToken was called on: ", lnAddress);
+    console.log("[wallet.ts]: this.tokens:", this.tokens);
+    this.tokens = this.tokens.filter((item) => {
+      if (item.token.ln !== lnAddress) {
+        return item;
+      }
+      return null;
+    });
+
+    this.save();
+  }
+
+  deleteToken(token_id: string) {
+    console.log("[wallet.ts]: deleteToken was called on: ", token_id);
+    console.log("[wallet.ts]: this.tokens:", this.tokens);
+    this.tokens = this.tokens.filter((item) => {
+      if (item.token.id !== token_id) {
+        return item;
+      }
+      return null;
+    });
+
+    this.save();
   }
 
   // Add confirmed Statecoin to wallet
@@ -1745,6 +1992,14 @@ export class Wallet {
     }
   }
 
+  setStateCoinSending(shared_key_id: string) {
+    this.statecoins.setCoinSending(shared_key_id);
+  }
+
+  setStateCoinAvailable(shared_key_id: string) {
+    this.statecoins.setCoinAvailable(shared_key_id);
+  }
+
   setStateCoinAutoSwap(shared_key_id: string) {
     this.statecoins.setAutoSwap(shared_key_id);
   }
@@ -1780,6 +2035,65 @@ export class Wallet {
     return this.getBIP32forBtcAddress(p2wpkh);
   }
 
+  // Initialise Token Deposit - Pay on Deposit
+  async tokenInit(token_amount: number) {
+    let token = await tokenInit(this.http_client, token_amount);
+
+    return token;
+  }
+
+  async tokenVerify(token_id: string) {
+    let verif = await tokenVerify(this.http_client, token_id);
+
+    console.log("wallet.tokenVerify:", verif);
+    // Checks verification of last token with ID: token_id
+    return verif;
+  }
+
+  async tokenDepositInit(value: number, token_id: string) {
+    log.info("Depositing Init. " + fromSatoshi(value) + " BTC");
+
+    let proof_key_bip32 = await this.genProofKey(); // Generate new proof key
+
+    let proof_key_pub = proof_key_bip32.publicKey.toString("hex");
+    let proof_key_priv = proof_key_bip32.privateKey!.toString("hex");
+
+    let wasm_client = await this.getWasm();
+
+    let statecoin = await tokenDepositInit(
+      this.http_client,
+      wasm_client,
+      token_id,
+      proof_key_pub,
+      proof_key_priv!,
+      value
+    );
+
+    // add proof key bip32 derivation to statecoin
+    statecoin.proof_key = proof_key_pub;
+
+    statecoin.value = value;
+
+    statecoin.sc_address = encodeSCEAddress(statecoin.proof_key);
+
+    //Coin created and activity list updated
+    this.addStatecoin(statecoin, ACTION.INITIATE);
+
+    // Co-owned key address to send funds to (P_addr)
+    let p_addr = statecoin.getBtcAddress(this.config.network);
+
+    // Import the BTC address into the wallet if using the electum-personal-server
+    await this.importAddress(p_addr);
+
+    // Begin task waiting for tx in mempool and update StateCoin status upon success.
+    this.awaitFundingTx(statecoin.shared_key_id, p_addr, statecoin.value);
+
+    log.info("Deposit Init done. Waiting for coins sent to " + p_addr);
+    await this.saveStateCoinsList();
+
+    return [statecoin.shared_key_id, p_addr];
+  }
+
   // Initialise deposit
   async depositInit(value: number) {
     log.info("Depositing Init. " + fromSatoshi(value) + " BTC");
@@ -1789,10 +2103,11 @@ export class Wallet {
     let proof_key_pub = proof_key_bip32.publicKey.toString("hex");
     let proof_key_priv = proof_key_bip32.privateKey!.toString("hex");
 
+    let wasm_client = await this.getWasm();
     // Initisalise deposit - gen shared keys and create statecoin
     let statecoin = await depositInit(
       this.http_client,
-      await this.getWasm(),
+      wasm_client,
       proof_key_pub,
       proof_key_priv!
     );
@@ -2145,7 +2460,10 @@ export class Wallet {
 
   // Perform do_swap
   // Args: shared_key_id of coin to swap.
-  async do_swap(shared_key_id: string): Promise<StateCoin | null> {
+  async do_swap(
+    shared_key_id: string,
+    excluded_txids: string[] = []
+  ): Promise<StateCoin | null> {
     let statecoin = this.statecoins.getCoin(shared_key_id);
     if (!statecoin) throw Error("No coin found with id " + shared_key_id);
     if (statecoin.backup_status === BACKUP_STATUS.MISSING)
@@ -2191,9 +2509,9 @@ export class Wallet {
         swapSemaphore.release();
       }
 
-      return await this.resume_swap(statecoin, false);
+      return await this.resume_swap(statecoin, false, excluded_txids);
     } else {
-      return await this.resume_swap(statecoin, true);
+      return await this.resume_swap(statecoin, true, excluded_txids);
     }
   }
 
@@ -2201,7 +2519,8 @@ export class Wallet {
   // Args: shared_key_id of coin to swap.
   async resume_swap(
     statecoin: StateCoin,
-    resume: boolean = true
+    resume: boolean = true,
+    excluded_txids: string[] = []
   ): Promise<StateCoin | null> {
     log.info("Swapping coin: " + statecoin.shared_key_id);
 
@@ -2237,7 +2556,8 @@ export class Wallet {
         statecoin,
         proof_key_der,
         new_proof_key_der,
-        resume
+        resume,
+        excluded_txids
       );
       new_statecoin = await swap.do_swap_poll();
     } catch (e: any) {
@@ -2296,7 +2616,7 @@ export class Wallet {
     return this.swap_group_info;
   }
 
-  resetSwapGroupInfo(){
+  resetSwapGroupInfo() {
     this.swap_group_info = new Map<SwapGroup, GroupInfo>();
   }
 
@@ -2371,8 +2691,10 @@ export class Wallet {
           if (
             !(err_str != null && err_str.includes("Coin is not in a swap pool"))
           ) {
-            log.info(`Error in deRegisterSwaps: ${err_str}`)
-            throw Error('Error: Connection Error - check connection and try again');
+            log.info(`Error in deRegisterSwaps: ${err_str}`);
+            throw Error(
+              "Error: Connection Error - check connection and try again"
+            );
           }
         }
       }
@@ -2439,7 +2761,7 @@ export class Wallet {
               statecoin.getTXIdAndOut() +
               " waiting in swap pool. Remove from pool to transfer."
           );
-        if (statecoin.status !== STATECOIN_STATUS.AVAILABLE)
+        if (statecoin.status !== STATECOIN_STATUS.AVAILABLE && statecoin.status !== STATECOIN_STATUS.SENDING)
           throw Error(
             "Coin " + statecoin.getTXIdAndOut() + " not available for Transfer."
           );
@@ -2493,7 +2815,8 @@ export class Wallet {
   // Args: transfer_messager retuned from sender's TransferSender
   // Return: New wallet coin data
   async transfer_receiver(
-    transfer_msg3: TransferMsg3
+    transfer_msg3: TransferMsg3,
+    excluded_txids: string[] = []
   ): Promise<TransferFinalizeData> {
     let walletcoins = this.statecoins.getCoins(transfer_msg3.statechain_id);
 
@@ -2523,8 +2846,18 @@ export class Wallet {
       this.config.required_confirmations,
       this.block_height,
       null,
-      null
+      null,
+      excluded_txids
     );
+
+    let prev_shared_key_ids = finalize_data.tx_backup_psm.shared_key_ids;
+    let coin_data = callGetUnspentStatecoins();
+    let last_shared_key_id= prev_shared_key_ids[prev_shared_key_ids.length - 1];
+    for (const coin of coin_data) {
+      if (coin.shared_key_id === last_shared_key_id) {
+        this.setStateCoinAvailable(last_shared_key_id);
+      }
+    };
 
     // Finalize protocol run by generating new shared key and updating wallet.
     await this.transfer_receiver_finalize(finalize_data);
@@ -3010,20 +3343,55 @@ export const getXpub = (mnemonic: string, network: Network) => {
   return node.neutered().toBase58();
 };
 
-function deleteKeys(obj: any, keys: Array<string>){
-  keys.map( key => {
+export const forceCloseChannel = (channel_id: Number) => {
+  return axios
+    .delete(`http://localhost:3003/channel/forceCloseChannel/${channel_id}`)
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((err) => {
+      console.log(err);
+      throw err;
+    });
+};
+
+export const mutualCloseChannel = (channel_id: Number) => {
+  return axios
+    .delete(`http://localhost:3003/channel/mutualCloseChannel/${channel_id}`)
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((err) => {
+      console.log(err);
+      throw err;
+    });
+};
+
+export const deleteChannelByAddr = (addr: string) => {
+  axios
+    .delete(`http://localhost:3003/channel/deleteChannelByAddr/${addr}`)
+    .then((res) => {
+      console.log(res);
+      return res;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+function deleteKeys(obj: any, keys: Array<string>) {
+  keys.map((key) => {
     deleteKey(obj, key);
-  })
+  });
 }
 
-function deleteKey(obj:any, key: keyof any) {
+function deleteKey(obj: any, key: keyof any) {
   if (key in obj) {
     delete obj[key];
   }
 
   return obj;
 }
-
 
 const dummy_master_key = {
   public: {

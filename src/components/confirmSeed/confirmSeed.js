@@ -1,20 +1,24 @@
 "use strict";
 import React, { useState } from "react";
 import { withRouter } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   setError,
   walletFromMnemonic,
   callGetVersion,
   callGetUnspentStatecoins,
   setWalletLoaded,
+  startLightningLDK,
+  setWallet,
 } from "../../features/WalletDataSlice";
 import "./confirmSeed.css";
+import { LDKClient } from "../../wallet/ldk_client";
 
 const TESTING_MODE = require("../../settings.json").testing_mode;
 
 const ConfirmSeed = (props) => {
   const dispatch = useDispatch();
+  const network = useSelector((state) => state.walletData.network);
 
   const generateUniqueSeedArr = () => {
     var arr = [];
@@ -84,6 +88,8 @@ const ConfirmSeed = (props) => {
 
   // Confirm words are correct
   const onConfirmClick = async (event) => {
+    console.log("onConfirmClick was pressed:");
+
     // Verify mnemonic confirmation
     for (let i = 0; i < missingwords.length; i++) {
       if (missingwords[i].word !== words[missingwords[i].pos]) {
@@ -115,14 +121,19 @@ const ConfirmSeed = (props) => {
 
     // Create wallet and load into Redux state
     try {
-      await walletFromMnemonic(
+      let wallet = await walletFromMnemonic(
         dispatch,
         props.wizardState.wallet_name,
         props.wizardState.wallet_password,
         props.wizardState.mnemonic,
         props.wizardState.wallet_network,
-        props.history
+        props.history,
+        undefined,
+        undefined,
+        undefined,
+        network.network
       );
+      dispatch(setWallet({ wallet: wallet }));
     } catch (e) {
       event.preventDefault();
       dispatch(setError({ msg: e.message }));

@@ -79,13 +79,15 @@ export default class Swap {
   n_retries: number;
   resume: boolean;
   step_timer: Timer;
+  excluded_txids: string[];
 
   constructor(
     wallet: Wallet,
     statecoin: StateCoin,
     proof_key_der: BIP32Interface,
     new_proof_key_der: BIP32Interface,
-    resume: boolean = false
+    resume: boolean = false,
+    excluded_txids: string[] = []
   ) {
     this.wallet = wallet;
     this.clients = SwapPhaseClients.from_wallet(wallet);
@@ -103,6 +105,7 @@ export default class Swap {
     this.n_retries = 0;
     this.resume = resume;
     this.step_timer = new Timer();
+    this.excluded_txids = excluded_txids;
   }
 
   setSwapSteps = (steps: SwapStep[]) => {
@@ -754,7 +757,8 @@ export default class Swap {
       req_confirmations,
       block_height,
       value,
-      null
+      null,
+      this.excluded_txids
     );
     typeforce(types.TransferMsg4, transfer_msg_4);
     log.debug("finished do_get_transfer_msg_4");
@@ -791,7 +795,8 @@ export default class Swap {
       req_confirmations,
       block_height,
       value,
-      transfer_msg_4
+      transfer_msg_4,
+      this.excluded_txids
     );
     typeforce(types.TransferFinalizeData, finalize_data);
     return finalize_data;

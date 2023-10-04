@@ -21,7 +21,8 @@ const ItemsContainer = (props) => {
                     :
                     <div>
                         <h3 className = "subtitle" > {props.channelListProps.title} </h3>
-                        <ChannelList 
+                        <ChannelList
+                            channels={props.channelListProps.channels} 
                             selectedChannels={props.channelListProps.selectedChannels}
                             setSelectedChannel = {props.channelListProps.addSelectedChannel}
                             refresh = {props.channelListProps.refreshChannels}

@@ -235,7 +235,10 @@ const Coin = (props) => {
         className={`coin-item ${
           swapPage || sendPage || withdrawPage ? props.coin_data.status : ""
         } ${isSelected(props.coin_data.shared_key_id) ? "selected" : ""}`}
-        onClick={() => {
+        onClick={(event) => {
+          if (typeof event.target.className === 'string' && event.target.className.includes("toggle")) {
+            return;
+          }
           if (
             props.coin_data.status === STATECOIN_STATUS.SWAPLIMIT &&
             swapPage
@@ -438,8 +441,13 @@ const Coin = (props) => {
               </span>
             </div>
           )}
-
-          <AutoSwapToggle coin_data={props.coin_data} />
+          <div className="autoSwapToggle">
+            <AutoSwapToggle coin_data={props.coin_data} />
+            <Tooltip
+              boldText={"Swap pool:"}
+              text={`Currently ${props.coin_data.participants} coins participating.`}
+            />
+          </div>
 
           {props.showCoinStatus ? (
             <div className="coin-status-or-txid">
@@ -550,19 +558,16 @@ const Coin = (props) => {
               />
             </button>
           )}
-          {isElectron() &&
-            props.isMainPage &&
-            !props.coin_data.deleting &&
-            props.coin_data.status === "INITIALISED" && (
-              <div className="Body-button expired">
-                <img
-                  className="close"
-                  src={close_img}
-                  alt="arrow"
-                  onClick={(e) => handleDeleteCoin(e)}
-                />
-              </div>
-            )}
+          {isElectron() && props.isMainPage && !props.coin_data.deleting && (
+            <div className="Body-button expired">
+              <img
+                className="close"
+                src={close_img}
+                alt="arrow"
+                onClick={(e) => handleDeleteCoin(e)}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

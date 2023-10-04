@@ -24,7 +24,9 @@ export const GET_ROUTE = {
   TRANSFER_GET_MSG_ADDR: "transfer/get_msg_addr",
   TOR_CIRCUITS: "tor_circuit",
   NEW_TOR_ID: "newid",
-  NEW_TOR_CIRCUIT: "newid"
+  NEW_TOR_CIRCUIT: "newid",
+  TOKEN_INIT: "pod/token/init",
+  TOKEN_VERIFY: "pod/token/verify",
 };
 Object.freeze(GET_ROUTE);
 
@@ -37,6 +39,7 @@ export const POST_ROUTE = {
   SIGN_SECOND: "ecdsa/sign/second",
   SMT_PROOF: "info/proof",
   DEPOSIT_INIT: "deposit/init",
+  POD_DEPOSIT_INIT: "deposit/init/pod",
   DEPOSIT_CONFIRM: "deposit/confirm",
   WITHDRAW_INIT: "withdraw/init",
   WITHDRAW_CONFIRM: "withdraw/confirm",
@@ -86,7 +89,10 @@ export class HttpClient {
   };
 
   async get(path: string, params: any, timeout_ms: number = TIMEOUT) {
+    console.log(params);
+    console.log(Object.entries(params).length);
     const url = this.endpoint + "/" + (path + (Object.entries(params).length === 0 ? "" : "/" + params)).replace(/^\/+/, '');
+    console.log(url);
     const config: AxiosRequestConfig = {
       method: 'get',
       url: url,

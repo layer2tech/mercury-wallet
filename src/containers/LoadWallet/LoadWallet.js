@@ -8,9 +8,11 @@ import {
   setError,
   callGetUnspentStatecoins,
   setWalletLoaded,
+  setWallet,
   initActivityLogItems,
-  walletLoadFromMem,
+  loadWalletFromMemory,
   walletLoadConnection,
+  startLightningLDK,
 } from "../../features/WalletDataSlice";
 import eyeIcon from "../../images/eye-icon.svg";
 import eyeIconOff from "../../images/eye-icon-off.svg";
@@ -70,18 +72,22 @@ const LoadWalletPage = (props) => {
   // Attempt to load wallet. If fail display error.
   const onContinueClick = async (event) => {
     // check for password
+    event.preventDefault();
     if (
       typeof selectedWallet === "string" ||
       selectedWallet instanceof String
     ) {
       try {
-        let wallet = await walletLoadFromMem(selectedWallet, passwordEntered);
+        let wallet = await loadWalletFromMemory(
+          selectedWallet,
+          passwordEntered
+        );
 
-        history.push("/home")
+        dispatch(setWallet({ wallet: wallet }));
+        history.push("/home");
         dispatch(setWalletLoaded({ loaded: true }));
-        
-        await walletLoadConnection(wallet)
 
+        await walletLoadConnection(wallet);
       } catch (e) {
         event.preventDefault();
         dispatch(setError({ msg: e.message }));
@@ -89,12 +95,16 @@ const LoadWalletPage = (props) => {
       }
     } else {
       try {
-        let wallet = await walletLoadFromMem(selectedWallet.name, passwordEntered);
+        let wallet = await loadWalletFromMemory(
+          selectedWallet.name,
+          passwordEntered
+        );
 
-        history.push("/home")
+        dispatch(setWallet({ wallet: wallet }));
+        history.push("/home");
         dispatch(setWalletLoaded({ loaded: true }));
-        
-        await walletLoadConnection(wallet)
+
+        await walletLoadConnection(wallet);
       } catch (e) {
         event.preventDefault();
         dispatch(setError({ msg: e.message }));
@@ -144,7 +154,6 @@ const LoadWalletPage = (props) => {
                 id="Passphrase"
                 type={showPass ? "text" : "password"}
                 name="password"
-                required
                 placeholder="Password "
                 value={passwordEntered}
                 onChange={onPasswordChange}

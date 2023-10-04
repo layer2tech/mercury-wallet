@@ -2,7 +2,6 @@
 import { checkForServerError, handlePromiseRejection } from './error';
 import { ElectrumTxData } from '../wallet/electrum';
 import { semaphore, TIMEOUT } from './http_client'
-import { log } from './swap/swap_utils';
 import axios, { AxiosRequestConfig } from 'axios'
 import { handleErrors } from '../error'
 let bitcoin = require('bitcoinjs-lib')

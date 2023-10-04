@@ -18,7 +18,12 @@ import {
   LoadWalletPage,
   RestoreWalletPage,
 } from "../index";
-import { getNetworkType, getWalletName, isWalletActive, setNetworkType } from "../../features/WalletDataSlice";
+import {
+  getNetworkType,
+  getWalletName,
+  isWalletActive,
+  setNetworkType,
+} from "../../features/WalletDataSlice";
 import { Header } from "../../components";
 
 import "./App.css";
@@ -27,6 +32,7 @@ import WithdrawLightning from "../WithdrawLigtning/WithdrawLightning";
 import SendLightning from "../SendLightning/SendLightning";
 import ReceiveLightning from "../ReceiveLightning/ReceiveLightning";
 import DepositLightning from "../DepositLightning/DepositLightning";
+import ChannelDetails from "../ChannelDetails/ChannelDetails";
 
 const App = () => {
   // State tell header whether wallet is loaded: home is Home page
@@ -36,7 +42,7 @@ const App = () => {
     shallowEqual
   );
   const [online, setOnline] = useState(navigator.onLine);
-  const [networkType, setNetwork] = useState(getNetworkType())
+  const [networkType, setNetwork] = useState(getNetworkType());
 
   const { dark_mode } = useSelector((state) => state.themeData);
 
@@ -78,15 +84,15 @@ const App = () => {
     darkMode();
   }, [dark_mode]);
 
-  if(!networkType && walletLoaded && isWalletActive()){
+  if (!networkType && walletLoaded && isWalletActive()) {
     setNetwork(getNetworkType());
   }
-  
-  if (networkType !== getNetworkType()){
+
+  if (networkType !== getNetworkType()) {
     setNetwork(getNetworkType());
-    setNetworkType(getNetworkType())
+    setNetworkType(getNetworkType());
   }
-  
+
   return (
     <div className={`App ${dark_mode === "1" ? "dark-mode" : ""}`}>
       {walletLoaded ? (
@@ -97,7 +103,12 @@ const App = () => {
         <title>Mercury Wallet {version}</title>
       )}
       <Router>
-        <Header walletLoaded={walletLoaded && isWalletActive()} online={online}  networkType={networkType} setNetworkType={setNetwork}/>
+        <Header
+          walletLoaded={walletLoaded && isWalletActive()}
+          online={online}
+          networkType={networkType}
+          setNetworkType={setNetwork}
+        />
         <Switch>
           <Route path="/" exact component={() => <WelcomePage />} />
           <Route
@@ -132,6 +143,11 @@ const App = () => {
             path="/deposit_ln"
             exact
             component={() => <DepositLightning />}
+          />
+          <Route
+            path="/channel_details"
+            exact
+            component={() => <ChannelDetails />}
           />
           <Route path="/withdraw" exact component={() => <WithdrawPage />} />
           <Route

@@ -215,7 +215,7 @@ p.short{
     background-color: var(--text-primary) !important;
 }
 
-.scoreAmount {
+.scoreAmount, .autoSwapToggle {
   position: relative;
   display: inline-block;
   cursor: pointer;
@@ -225,7 +225,7 @@ p.short{
 .scoreAmount img {
   margin-right: 10px;
 }
-.scoreAmount .tooltip {
+.scoreAmount .tooltip, .autoSwapToggle .tooltip {
   visibility: hidden;
   width: 350px;
   background-color: var(--button-border);
@@ -242,7 +242,7 @@ p.short{
   transition: opacity 0.3s;
 }
 
-.scoreAmount:hover .tooltip, .CoinPanel:hover .dup-container .tooltip {
+.scoreAmount:hover .tooltip, .CoinPanel:hover .dup-container .tooltip, .autoSwapToggle:hover .tooltip {
   visibility: visible;
   opacity: 1;
 }
