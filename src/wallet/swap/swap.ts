@@ -14,7 +14,8 @@ import {
 import { pollUtxo, pollSwap, getSwapInfo, swapRegisterUtxo } from "./info_api";
 import { delay_s, getTransferBatchStatus } from "../mercury/info_api";
 import { StateChainSig } from "../util";
-import { BIP32Interface, Network } from "bitcoinjs-lib";
+import { Network } from "bitcoinjs-lib";
+import { BIP32Interface } from "bip32";
 import { Wallet } from "../wallet";
 import { ACTION } from "../activity_log";
 import {

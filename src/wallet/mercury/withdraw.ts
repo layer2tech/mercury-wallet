@@ -1,7 +1,8 @@
 'use strict';
 // Withdraw
 
-import { BIP32Interface, Network, Transaction } from "bitcoinjs-lib";
+import { Network, Transaction } from "bitcoinjs-lib";
+import { BIP32Interface } from "bip32";
 import { getFeeInfo, HttpClient, MockHttpClient, POST_ROUTE, StateCoin } from "..";
 import { PrepareSignTxMsg } from "./ecdsa";
 import { getSigHash, StateChainSig, txBuilder, WITHDRAW_SEQUENCE } from "../util";

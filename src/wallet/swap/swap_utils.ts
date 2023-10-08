@@ -20,7 +20,8 @@ import {
 } from "../mercury/transfer";
 import { getStateCoin } from "../mercury/info_api";
 import { StateChainSig } from "../util";
-import { BIP32Interface, Network, script, ECPair } from "bitcoinjs-lib";
+import { Network, script } from "bitcoinjs-lib";
+import { BIP32Interface } from "bip32";
 import { v4 as uuidv4 } from "uuid";
 import { Wallet } from "../wallet";
 import { MockWasm } from "..";
